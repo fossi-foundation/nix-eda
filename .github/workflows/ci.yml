@@ -8,20 +8,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [
+        os:
+          [
             {
               name: "Ubuntu 24.04",
               family: "linux",
               runner: "ubuntu-24.04",
               archs: "x86_64",
             },
-            ## https://github.com/github/roadmap/issues/970
-            # {
-            #   name: "Ubuntu 22.04",
-            #   family: "linux",
-            #   runner: "ubuntu-22.04",
-            #   archs: "aarch64",
-            # },
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04-arm",
+              archs: "aarch64",
+            },
             {
               name: "macOS 13",
               family: "macos",
@@ -42,7 +42,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: cachix/cachix-action@v14
         with:
-          name: openlane
+          name: ${{ vars.CACHIX_NAME }}
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - run: |
           python3 ./.github/workflows/get_all_packages.py | xargs nix build
