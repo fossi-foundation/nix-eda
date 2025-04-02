@@ -1,10 +1,9 @@
 # ❄️ nix-eda
 
-![A terminal running a command to create a shell with the tool xschem installed, then invoking xschem](./screenshot.webp)
+![A terminal running a command to create a shell with the tool xschem installed, then invoking xschem](./screenshot.png)
 
 A [flake](https://nixos.wiki/wiki/Flakes) containing a collection of Nix
-derivations for EDA (Electronic Design Automation) utilities, curated by
-Efabless Corporation.
+derivations for EDA (Electronic Design Automation) utilities.
 
 > nix-eda is not affiliated with the NixOS Foundation or any of its affiliates.
 
@@ -23,7 +22,7 @@ We compile and cache the tools for the following platforms:
 * [ngspice](https://ngspice.sourceforge.io)
 * [KLayout](https://klayout.de)
     * (+ `.pymod` for Python module)
-* [GDSFactory]
+* [GDSFactory](https://github.com/gdsfactory/gdsfactory)
     * (+ `klayout-gdsfactory` as a shorthand for an environment with both installed)
 * [Surelog](https://github.com/chipsalliance/Surelog)
 * [Verilator](https://verilator.org)
@@ -56,7 +55,7 @@ make sure that:
 If you satisfy these conditions, you may use any of the tools by creating a Terminal shell with the tool as follows:
 
 ```sh
-nix shell github:efabless/nix-eda#magic
+nix shell github:fossi-foundation/nix-eda#magic
 ```
 
 then simply invoking `magic`. If you correctly set up the OpenLane cachix, you
@@ -66,21 +65,12 @@ build it.
 You may also create a shell with multiple tools as follows:
 
 ```sh
-nix shell github:efabless/nix-eda#{magic,xschem}
+nix shell github:fossi-foundation/nix-eda#{magic,xschem}
 ```
 
-### As a dependency
-
-To be documented, but you may refer to
-[OpenLane 2](https://github.com/efabless/openlane2)
-as an example of how to use this repository as a dependency. OpenLane 2 uses
-this repository in addition to a number of other tools to provide a full
-digital design environment.
-
-Please note that the API for the functions provided in the Flake are not yet stable.
-
 ## ⚖️ License
+
 The Apache License, version 2.0. See 'License'.
 
-
-
+* nix-eda was originally developed by Efabless Corporation and released under
+  the same license. Original repo: https://github.com/efabless/nix-eda
