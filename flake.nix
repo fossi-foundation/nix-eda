@@ -117,15 +117,6 @@
           yosys-lighter = callPackage ./nix/yosys-lighter.nix {};
           yosys-synlig-sv = callPackage ./nix/yosys-synlig-sv.nix {};
           yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {};
-          yosysFull = pkgs'.yosys.withPlugins (with pkgs';
-            [
-              yosys-sby
-              yosys-eqy
-              yosys-f4pga-sdc
-              yosys-lighter
-              yosys-synlig-sv
-            ]
-            ++ lib.optionals pkgs.stdenv.isx86_64 [yosys-ghdl]);
         })
       ];
     };

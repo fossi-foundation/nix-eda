@@ -1,3 +1,7 @@
+# Copyright 2025 The American University in Cairo
+#
+# Adapted from efabless/nix-eda
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +41,7 @@
   lib,
   symlinkJoin,
   clangStdenv,
-  fetchFromGitHub,
+  fetchzip,
   pkg-config,
   cmake,
   makeWrapper,
@@ -52,36 +56,14 @@
   zlib,
   fetchurl,
   bash,
-  version ? "0.46",
-  sha256 ? "sha256-ofMHVxqNd9WRJJnPiqgy7t8LorHozuOPqOf8NLl0e4U=",
-  abc-sha256 ? "sha256-4KTrbk7JIJ97gfetKOoL4TYanPT09jk1b+78H0RQ234=",
+  version ? "0.53",
+  sha256 ? "sha256:09qdn3pi9gqm5kybq5klrmpgjj9vxsy74q1ds2590hlky7jbx8fq",
   # For environments
   yosys,
   buildEnv,
   buildPythonEnvForInterpreter,
   makeBinaryWrapper,
 }: let
-  abc = clangStdenv.mkDerivation {
-    name = "yosys-abc";
-
-    src = fetchurl {
-      url = "https://github.com/YosysHQ/yosys/releases/download/${version}/abc.tar.gz";
-      sha256 = abc-sha256;
-    };
-
-    patches = [
-      ./patches/yosys/abc-editline.patch
-    ];
-
-    postPatch = ''
-      sed -i "s@-lreadline@-ledit@" ./Makefile
-    '';
-
-    nativeBuildInputs = [cmake];
-    buildInputs = [libedit];
-
-    installPhase = "mkdir -p $out/bin && mv abc $out/bin";
-  };
   boost-python = boost185.override {
     python = python3;
     enablePython = true;
@@ -91,10 +73,8 @@ in
     pname = "yosys";
     inherit version;
 
-    src = fetchFromGitHub {
-      owner = "YosysHQ";
-      repo = "yosys";
-      rev = "${version}";
+    src = fetchzip {
+      url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys.tar.gz";
       inherit sha256;
     };
 
@@ -117,7 +97,6 @@ in
           setuptools
           wheel
         ]))
-      abc
     ];
 
     passthru = {
@@ -181,7 +160,6 @@ in
       "ENABLE_EDITLINE=1"
       "ENABLE_YOSYS=1"
       "ENABLE_PYOSYS=1"
-      "ABCEXTERNAL=${abc}/bin/abc"
       "PYTHON_DESTDIR=${placeholder "out"}/${python3.sitePackages}"
       "BOOST_PYTHON_LIB=${boost-python}/lib/libboost_${python3.pythonAttr}${clangStdenv.hostPlatform.extensions.sharedLibrary}"
     ];
@@ -198,8 +176,7 @@ in
       set -x
     '';
 
-    postBuild = "ln -sfv ${abc}/bin/abc ./yosys-abc";
-    postInstall = "ln -sfv ${abc}/bin/abc $out/bin/yosys-abc";
+    postInstall = "";
 
     doCheck = false;
     enableParallelBuilding = true;
