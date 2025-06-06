@@ -46,31 +46,16 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
             extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-      - name: Configure AWS Credentials
-        env:
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        uses: aws-actions/configure-aws-credentials@v4
-        if: env.AWS_REGION != ''
+      - name: Get all packages
+        run: |
+          echo "FLAKE_OUTPUTS=$(python3 ./.github/workflows/get_all_packages.py)" >> $GITHUB_ENV
+      - name: Sign and Cache Nix Builds to S3
+        uses: ./.github/actions/nix_sign_cache_s3
         with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: Build All
-        run: |
-          python3 ./.github/workflows/get_all_packages.py | xargs nix build
-      - name: Sign All
-        env:
-          NIX_PRIVATE_KEY: ${{ secrets.NIX_PRIVATE_KEY }}
-        if: env.NIX_PRIVATE_KEY != ''
-        run: |
-          umask 077
-          echo "${{ env.NIX_PRIVATE_KEY }}" > ~/nix-private-key
-          python3 ./.github/workflows/get_all_packages.py | xargs nix store sign --recursive --key-file ~/nix-private-key
-      - name: Push to S3 Cache
-        if: vars.NIX_PUBLIC_KEY != '' && env.AWS_REGION != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != ''
-        run: |
-          python3 ./.github/workflows/nix_copy_s3.py \
-            --upstream-cache "https://cache.nixos.org" \
-            --to-s3-bucket "${{ vars.NIX_CACHE }}" \
-            --verify-signature-key "${{ vars.NIX_PUBLIC_KEY }}" \
-            $(python3 ./.github/workflows/get_all_packages.py)
+          flake_outputs: ${{ env.FLAKE_OUTPUTS }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
+          s3_bucket_name: ${{ vars.NIX_CACHE }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
