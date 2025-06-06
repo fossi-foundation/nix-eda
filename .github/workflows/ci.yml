@@ -71,6 +71,6 @@ jobs:
         run: |
           python3 ./.github/workflows/nix_copy_s3.py \
             --upstream-cache "https://cache.nixos.org" \
-            --to-s3-bucket "${{ vars.NIX_CACHE }}"" \
+            --to-s3-bucket "${{ vars.NIX_CACHE }}" \
             --verify-signature-key "${{ vars.NIX_PUBLIC_KEY }}" \
             $(python3 ./.github/workflows/get_all_packages.py)
