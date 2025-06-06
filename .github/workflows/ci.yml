@@ -48,7 +48,7 @@ jobs:
             extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
       - name: Configure AWS Credentials
         env:
-          AWS_REGION: ${{ env.AWS_REGION }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
         uses: aws-actions/configure-aws-credentials@v4
         if: env.AWS_REGION != ''
         with:
