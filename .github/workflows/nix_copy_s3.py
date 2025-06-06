@@ -40,10 +40,16 @@ import argparse
 import sys
 import tempfile
 import subprocess
-from logging import warning
+import logging
 from typing import Any, List, Dict, Set
 
 ws_rx = re.compile(r"\s+")
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 
 def parse_narinfo(file: io.TextIOWrapper):
@@ -59,9 +65,10 @@ def parse_narinfo(file: io.TextIOWrapper):
         elif key in ["References", "Sig"]:
             value = ws_rx.split(value)
         else:
-            warning(
+            logging.warning(
                 f"Error while parsing narinfo file: Unexpected key {key} -- ignoring"
             )
+            continue
         result[key] = value
     return result
 
@@ -100,7 +107,9 @@ def main(text_args):
     paths_in_upstream_caches: Dict[str, str] = {}
 
     for i, flake_output in enumerate(args_parsed.flake_outputs):
-        print(f"Processing {flake_output} ({i + 1}/{len(args_parsed.flake_outputs)})…")
+        logging.info(
+            f"Processing {flake_output} ({i + 1}/{len(args_parsed.flake_outputs)})…"
+        )
 
         # 0. List all paths that this flake output depends on.
         local_store_path_dict: Dict[str, Any] = check_json_out(
@@ -120,6 +129,7 @@ def main(text_args):
 
         # 2. Query paths that need to be queried against upstream.
         if len(paths_to_query):
+            logging.info("Checking for paths upstream…")
             upstream_cache_paths_dict = check_json_out(
                 [
                     "nix",
@@ -149,11 +159,11 @@ def main(text_args):
         # 3. Upload remaining paths from closure, if any, to our S3-based cache.
         difference = closure - set(paths_in_upstream_caches.keys())
         if len(difference):
-            print(
+            logging.info(
                 f"One or more paths not found in upstream cache and will be uploaded:"
             )
             for path in difference:
-                print(f"* {path}")
+                logging.info(f"* {path}")
             # The way this is implemented is:
             # 0. copy the full closure with zstd compression to a temporary
             #    directory
@@ -172,6 +182,7 @@ def main(text_args):
             with tempfile.TemporaryDirectory(prefix="nix-eda-copy-uncache") as temp_dir:
                 d = os.path.abspath(os.path.realpath(temp_dir))
                 sync_include_args: List[str] = []
+                logging.info("Copying closure…")
                 subprocess.check_call(
                     [
                         "nix",
@@ -185,6 +196,7 @@ def main(text_args):
                 for missing_store_path in difference:
                     # Verify non-recursively that it is signed with our key
                     try:
+                        logging.info(f"Verifying {missing_store_path}…")
                         subprocess.check_call(
                             [
                                 "nix",
@@ -212,6 +224,7 @@ def main(text_args):
                         "--include",
                         narinfo["URL"],
                     ]
+                logging.info("Uploading…")
                 subprocess.check_call(
                     [
                         "aws",
@@ -226,7 +239,7 @@ def main(text_args):
                     ]
                 )
         else:
-            print("All paths already exist in upstream caches.")
+            logging.info("All paths already exist in upstream caches.")
 
 
 if __name__ == "__main__":
