@@ -1,0 +1,64 @@
+name: Build with Nix
+
+on:
+  push:
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          [
+            {
+              name: "Ubuntu 24.04",
+              family: "linux",
+              runner: "ubuntu-24.04",
+              archs: "x86_64",
+            },
+            {
+              name: "Ubuntu 22.04",
+              family: "linux",
+              runner: "ubuntu-22.04-arm",
+              archs: "aarch64",
+            },
+            {
+              name: "macOS 13",
+              family: "macos",
+              runner: "macos-13",
+              archs: "x86_64",
+            },
+            {
+              name: "macOS 14",
+              family: "macos",
+              runner: "macos-14",
+              archs: "arm64",
+            },
+          ]
+    name: Nix Builds | ${{ matrix.os.name }} | ${{ matrix.os.archs }}
+    runs-on: ${{ matrix.os.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          # OpenLane cachix temporarily included until most things copied over
+          extra-conf: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+      - name: Get all packages
+        run: |
+          echo "FLAKE_OUTPUTS=$(python3 ./.github/workflows/get_all_packages.py)" >> $GITHUB_ENV
+      - name: Build All
+        run: |
+          nix build ${{ env.FLAKE_OUTPUTS }}
+      - name: Sign and Cache Nix Builds to S3
+        uses: ./.github/actions/nix_sign_cache_s3
+        with:
+          flake_outputs: ${{ env.FLAKE_OUTPUTS }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_private_key: ${{ secrets.NIX_PRIVATE_KEY }}
+          s3_bucket_name: ${{ vars.NIX_CACHE }}
+          aws_region: ${{ secrets.AWS_REGION }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

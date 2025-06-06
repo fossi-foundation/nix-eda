@@ -33,33 +33,20 @@ We compile and cache the tools for the following platforms:
     * (+ some plugins that can be accessed programmatically)
     * (`yosysFull` for all plugins)
 
+## Installation
+
+See [Installation.md](./Installation.md).
+
 ## Usage
 
-### Directly
-
-Before anything, if you haven't installed Nix using the
-[OpenLane 2 documentation](https://openlane2.readthedocs.io/en/latest/getting_started/common/nix_installation/index.html),
-make sure that:
-
-1. You have Nix installed.
-    * If not, see OpenLane 2's documentation on Nix-based installation linked
-    above.
-1. If you already have Nix installed, you have enabled the experimental Nix
-   features `flakes` and `nix-command`.
-    * If not, see this [this guide](https://nixos.wiki/wiki/Flakes#Other_Distros.2C_without_Home-Manager) for more info.
-1. You have the OpenLane [Cachix](https://cachix.org) enabled.
-    * If not, see the "If you already have Nix set up…" portion of the Openlane
-    2 installation documentation linked above.
-
-If you satisfy these conditions, you may use any of the tools by creating a Terminal shell with the tool as follows:
+You may use any of the tools by creating a Terminal shell with the tool as
+follows:
 
 ```sh
 nix shell github:efabless/nix-eda#magic
 ```
 
-then simply invoking `magic`. If you correctly set up the OpenLane cachix, you
-won't have to build anything, but if you didn't, your computer will attempt to
-build it.
+Then you would be able to simply type `magic`.
 
 You may also create a shell with multiple tools as follows:
 
@@ -80,5 +67,21 @@ Please note that the API for the functions provided in the Flake are not yet sta
 ## ⚖️ License
 The Apache License, version 2.0. See 'License'.
 
+nix-eda is based on [nix-eda](https://github.com/efabless/nix-eda)
+by Efabless Corporation:
 
+```
+Copyright 2024 Efabless Corporation
 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+``` 
