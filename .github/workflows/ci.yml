@@ -46,9 +46,6 @@ jobs:
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
             extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
             extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-      - name: Install AWS CLI
-        run: |
-          pip3 install awscli
       - name: Configure AWS Credentials
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
