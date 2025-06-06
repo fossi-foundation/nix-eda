@@ -50,7 +50,7 @@ jobs:
         run: |
           pip3 install awscli
       - name: Authenticate AWS
-        if: ${{ secrets.AWS_REGION != '' && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
+        if: secrets.AWS_REGION != '' && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ secrets.AWS_REGION }}
@@ -60,13 +60,13 @@ jobs:
         run: |
           python3 ./.github/workflows/get_all_packages.py | xargs nix build
       - name: Sign All
-        if: ${{ secrets.NIX_PRIVATE_KEY }}
+        if: secrets.NIX_PRIVATE_KEY != ''
         run: |
           umask 077
           echo "${{ secrets.NIX_PRIVATE_KEY }}" > ~/nix-private-key
           python3 ./.github/workflows/get_all_packages.py | xargs nix store sign --key-file ~/nix-private-key
       - name: Push to S3 Cache
-        if: ${{ vars.NIX_PUBLIC_KEY != '' && secrets.AWS_REGION != '' && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
+        if: vars.NIX_PUBLIC_KEY != '' && secrets.AWS_REGION != '' && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != ''
         run: |
           # Verify that files have been successfully signed first
           python3 ./.github/workflows/get_all_packages.py | xargs nix store verify --trusted-public-keys ${{ vars.NIX_PUBLIC_KEY }}
