@@ -73,4 +73,4 @@ jobs:
           python3 ./.github/workflows/get_all_packages.py | xargs nix store verify --trusted-public-keys ${{ vars.NIX_PUBLIC_KEY }}
           
           # Push!
-          python3 ./.github/workflows/get_all_packages.py | xargs nix store copy --to 's3://${{ vars.NIX_CACHE }}/?scheme=https&region=${{ env.AWS_REGION }}'
+          python3 ./.github/workflows/get_all_packages.py | xargs nix copy --to 's3://${{ vars.NIX_CACHE }}/?scheme=https&region=${{ env.AWS_REGION }}'
