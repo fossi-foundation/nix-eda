@@ -191,7 +191,6 @@ def main(text_args):
                         f"file://{d}?compression=zstd",
                         flake_output,
                     ],
-                    stderr=subprocess.PIPE,
                 )
                 for missing_store_path in difference:
                     # Verify non-recursively that it is signed with our key
