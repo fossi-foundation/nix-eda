@@ -114,33 +114,34 @@ def main(text_args):
                 paths_queried.add(path)
 
         # 2. Query paths that need to be queried against upstream.
-        upstream_cache_paths_dict = check_json_out(
-            [
-                "nix",
-                "path-info",
-                "--json",
-                "--eval-store",
-                "",
-                "--store",
-                args_parsed.upstream_cache,
-                *paths_to_query,
-            ],
-            stderr=subprocess.PIPE,
-        )
+        if len(paths_to_query):
+            upstream_cache_paths_dict = check_json_out(
+                [
+                    "nix",
+                    "path-info",
+                    "--json",
+                    "--eval-store",
+                    "",
+                    "--store",
+                    args_parsed.upstream_cache,
+                    *paths_to_query,
+                ],
+                stderr=subprocess.PIPE,
+            )
         
-        # 3. Update list of paths known to be upstream
-        #
-        #    We store which cache for the probability of supporting multiple
-        #    caches in the future. Don't count on it though.
-        paths_in_upstream_caches.update(
-            {
-                k: args_parsed.upstream_cache
-                for k in upstream_cache_paths_dict
-                if upstream_cache_paths_dict[k] != None
-            }
-        )
+            # 2a. Update list of paths known to be upstream
+            #
+            #    We store which cache for the probability of supporting multiple
+            #    caches in the future. Don't count on it though.
+            paths_in_upstream_caches.update(
+                {
+                    k: args_parsed.upstream_cache
+                    for k in upstream_cache_paths_dict
+                    if upstream_cache_paths_dict[k] != None
+                }
+            )
 
-        # 4. Upload remaining paths from closure, if any, to our S3-based cache.
+        # 3. Upload remaining paths from closure, if any, to our S3-based cache.
         difference = closure - set(paths_in_upstream_caches.keys())
         if len(difference):
             print(
