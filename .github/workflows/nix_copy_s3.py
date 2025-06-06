@@ -65,14 +65,13 @@ def parse_narinfo(file: io.TextIOWrapper):
         result[key] = value
     return result
 
+
 def check_json_out(args: List[str], **kwargs):
     if "encoding" not in kwargs:
         kwargs["encoding"] = "utf8"
-    out_str = subprocess.check_output(
-        args,
-        **kwargs
-    )
+    out_str = subprocess.check_output(args, **kwargs)
     return json.loads(out_str)
+
 
 def main(text_args):
     args = argparse.ArgumentParser()
@@ -88,6 +87,12 @@ def main(text_args):
         help="The S3 bucket to upload to. The AWS CLI will be used, so make sure your environment is configured properly.",
         required=True,
     )
+    args.add_argument(
+        "-s",
+        "--verify-signature-key",
+        help="The public key used to sign the store paths in question. If a store path is not signed with this key, this script will exit with an error code.",
+        required=True,
+    )
     args.add_argument("flake_outputs", nargs="+")
     args_parsed = args.parse_args(text_args)
 
@@ -96,7 +101,7 @@ def main(text_args):
 
     for i, flake_output in enumerate(args_parsed.flake_outputs):
         print(f"Processing {flake_output} ({i + 1}/{len(args_parsed.flake_outputs)})…")
-        
+
         # 0. List all paths that this flake output depends on.
         local_store_path_dict: Dict[str, Any] = check_json_out(
             ["nix", "path-info", "--recursive", "--json", flake_output],
@@ -104,7 +109,7 @@ def main(text_args):
         )
 
         closure: Set[str] = set(local_store_path_dict.keys())
-        
+
         # 1. Check which paths have already been queried upstream, and
         # which need to be queried.
         paths_to_query: Set[str] = set()
@@ -128,7 +133,7 @@ def main(text_args):
                 ],
                 stderr=subprocess.PIPE,
             )
-        
+
             # 2a. Update list of paths known to be upstream
             #
             #    We store which cache for the probability of supporting multiple
@@ -159,7 +164,7 @@ def main(text_args):
             #    already in the cache will not be uploaded.
             # ---
             # Potential improvements:
-            # 
+            #
             # * Query cache to verify the paths don't already exist there
             #   to save time on nix copy
             # * Only nix copy paths that we care about uploading -- blocked on
@@ -178,15 +183,29 @@ def main(text_args):
                     stderr=subprocess.PIPE,
                 )
                 for missing_store_path in difference:
+                    # Verify non-recursively that it is signed with our key
+                    try:
+                        subprocess.check_call(
+                            [
+                                "nix",
+                                "store",
+                                "verify",
+                                "--trusted-public-keys",
+                                args_parsed.verify_signature_key,
+                                missing_store_path,
+                            ],
+                            stderr=subprocess.PIPE,
+                        )
+                    except subprocess.CalledProcessError as e:
+                        raise RuntimeError(
+                            f"Path {missing_store_path} is not signed with {args_parsed.verify_signature_key}: {e}"
+                        ) from None
                     nix_hash, _ = os.path.basename(missing_store_path).split(
                         "-", maxsplit=1
                     )
                     narinfo_path = f"{d}/{nix_hash}.narinfo"
                     with open(narinfo_path) as f:
                         narinfo = parse_narinfo(f)
-                    assert len(
-                        narinfo.get("Sig", [])
-                    ), f"No signatures found for {missing_store_path}: try nix store sign --key-file <path to key> --recursive {flake_output}"
                     sync_include_args += [
                         "--include",
                         os.path.basename(narinfo_path),
