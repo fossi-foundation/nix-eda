@@ -69,4 +69,8 @@ jobs:
       - name: Push to S3 Cache
         if: vars.NIX_PUBLIC_KEY != '' && env.AWS_REGION != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != ''
         run: |
-          python3 ./.github/workflows/nix_copy_s3.py --upstream-cache "https://cache.nixos.org" --to-s3-bucket ${{ vars.NIX_CACHE }} $(python3 ./.github/workflows/get_all_packages.py)
+          python3 ./.github/workflows/nix_copy_s3.py \
+            --upstream-cache "https://cache.nixos.org" \
+            --to-s3-bucket "${{ vars.NIX_CACHE }}"" \
+            --verify-signature-key "${{ vars.NIX_PUBLIC_KEY }}" \
+            $(python3 ./.github/workflows/get_all_packages.py)
