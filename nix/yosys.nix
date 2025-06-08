@@ -41,7 +41,6 @@
   lib,
   symlinkJoin,
   clangStdenv,
-  fetchzip,
   pkg-config,
   cmake,
   makeWrapper,
@@ -57,7 +56,7 @@
   fetchurl,
   bash,
   version ? "0.53",
-  sha256 ? "sha256:09qdn3pi9gqm5kybq5klrmpgjj9vxsy74q1ds2590hlky7jbx8fq",
+  sha256 ? "sha256-Em6T2Czsqezhz5c7OVtGocyBBWUajs896a++eGze6lg=",
   # For environments
   yosys,
   buildEnv,
@@ -69,20 +68,25 @@
     enablePython = true;
   };
 in
-  clangStdenv.mkDerivation {
+  clangStdenv.mkDerivation (finalAttrs: {
     pname = "yosys";
     inherit version;
 
-    src = fetchzip {
+    src = fetchurl {
       url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys.tar.gz";
       inherit sha256;
     };
+    
+    unpackPhase = ''
+      tar -xzvC . -f ${finalAttrs.src}
+    '';
 
     nativeBuildInputs = [
       pkg-config
       bison
       flex
     ];
+
     propagatedBuildInputs = [
       tcl
       libedit
@@ -91,6 +95,7 @@ in
       zlib
       boost185
     ];
+    
     buildInputs = [
       (python3.withPackages (ps:
         with ps; [
@@ -187,4 +192,4 @@ in
       homepage = "https://www.yosyshq.com/";
       platforms = platforms.all;
     };
-  }
+  })
