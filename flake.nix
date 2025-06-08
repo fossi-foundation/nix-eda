@@ -12,15 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 {
-  nixConfig = {
-    extra-substituters = [
-      "https://openlane.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E="
-    ];
-  };
-
   inputs = {
     nixpkgs.url = github:nixos/nixpkgs/nixos-24.11;
   };

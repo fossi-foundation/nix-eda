@@ -1,0 +1,67 @@
+name: Sign & Cache Nix Build (S3)
+description: |
+  Caches any Nix builds in AWS S3.
+  
+  Requires Nix and AWSCLI to both be installed in the calling workflow
+  beforehand.
+  
+  Requires Nix builds to have actually occurred beforehand.
+inputs:
+  shell:
+    description: "Shell to use"
+    required: true
+    default: "bash"
+  flake_outputs:
+    description: "The flake output(s) to Cache"
+    required: true
+    default: "."
+  s3_bucket_name:
+    description: "The name of the S3 bucket to use as a Cache"
+    required: false
+    default: ""
+  nix_public_key:
+    description: "The Nix public key to use to verify signatures before uploading"
+    required: false
+    default: ""
+  nix_private_key:
+    description: "The Nix private key to use to recursively sign uploaded paths"
+    required: false
+    default: ""
+  aws_region:
+    description: "The AWS region where the bucket lives"
+    required: false
+    default: ""
+  aws_access_key_id:
+    description: "AWS access key ID"
+    required: false
+    default: ""
+  aws_secret_access_key:
+    description: "AWS secret access key"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      if: inputs.aws_region != '' && inputs.aws_access_key_id != '' && inputs.aws_secret_access_key != ''
+      with:
+        aws-region: ${{ inputs.aws_region }}
+        aws-access-key-id: ${{ inputs.aws_access_key_id }}
+        aws-secret-access-key: ${{ inputs.aws_secret_access_key }}
+    - name: Sign All
+      shell: ${{ inputs.shell }}
+      if: inputs.nix_private_key != ''
+      run: |
+        umask 077
+        echo "${{ inputs.nix_private_key }}" > ~/nix-private-key
+        nix store sign --recursive --key-file ~/nix-private-key ${{ inputs.flake_outputs }}
+    - name: Push to S3 Cache
+      shell: ${{ inputs.shell }}
+      if: inputs.s3_bucket_name != '' && inputs.nix_public_key != '' && inputs.nix_private_key != '' && inputs.aws_region != '' && inputs.aws_access_key_id != '' && inputs.aws_secret_access_key != ''
+      run: |
+        python3 ${{ github.action_path }}/nix_copy_s3.py \
+          --upstream-cache "https://cache.nixos.org" \
+          --to-s3-bucket "${{ inputs.s3_bucket_name }}" \
+          --verify-signature-key "${{ inputs.nix_public_key }}" \
+          ${{ inputs.flake_outputs }}
