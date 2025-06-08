@@ -43,9 +43,9 @@
   pkg-config,
   tcl,
   tk-x11,
-  version ? "3.4.6-106-g315c5bd6", # Run 'git describe' on the xschem repo
-  rev ? "315c5bd600945a596fda9a17a630d08009153476",
-  sha256 ? "sha256-H89aYuwl9qnya9H6Qo5Q2SkxgrKA0dkHeVghCwyoKiE=",
+  version ? "3.4.7", # Run 'git describe' on the xschem repo if no tag is used
+  rev ? null,
+  sha256 ? "sha256-ye97VJQ+2F2UbFLmGrZ8xSK9xFeF+Yies6fJKurPOD0=",
 }:
 stdenv.mkDerivation {
   pname = "xschem";
@@ -54,7 +54,10 @@ stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "StefanSchippers";
     repo = "xschem";
-    inherit rev;
+    rev =
+      if rev == null
+      then version
+      else rev;
     inherit sha256;
   };
 
