@@ -51,9 +51,10 @@ jobs:
           echo "FLAKE_OUTPUTS=$(python3 ./.github/workflows/get_all_packages.py)" >> $GITHUB_ENV
       - name: Build All
         run: |
-          nix build ${{ env.FLAKE_OUTPUTS }}
+          nix build --no-link ${{ env.FLAKE_OUTPUTS }}
       - name: Sign and Cache Nix Builds to S3
         uses: ./.github/actions/nix_sign_cache_s3
+        if: always()
         with:
           flake_outputs: ${{ env.FLAKE_OUTPUTS }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
