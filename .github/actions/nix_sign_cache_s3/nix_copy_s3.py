@@ -112,10 +112,17 @@ def main(text_args):
         )
 
         # 0. List all paths that this flake output depends on.
-        local_store_path_dict: Dict[str, Any] = check_json_out(
-            ["nix", "path-info", "--recursive", "--json", flake_output],
-            stderr=subprocess.PIPE,
-        )
+        try:
+            local_store_path_dict: Dict[str, Any] = check_json_out(
+                ["nix", "path-info", "--recursive", "--json", flake_output],
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError as e:
+            if "is not valid" in e.stderr:
+                logging.warning(f"Failed to get store paths for {flake_output} -- assuming broken, skipping…")
+                continue
+            else:
+                raise e from None
 
         closure: Set[str] = set(local_store_path_dict.keys())
 
@@ -208,9 +215,10 @@ def main(text_args):
                             stderr=subprocess.PIPE,
                         )
                     except subprocess.CalledProcessError as e:
-                        raise RuntimeError(
-                            f"Path {missing_store_path} is not signed with {args_parsed.verify_signature_key}: {e}"
-                        ) from None
+                        logging.warning(
+                            f"Skipping {missing_store_path}: not signed with {args_parsed.verify_signature_key}: {e.stderr}"
+                        )
+                        continue
                     nix_hash, _ = os.path.basename(missing_store_path).split(
                         "-", maxsplit=1
                     )
@@ -223,20 +231,21 @@ def main(text_args):
                         "--include",
                         narinfo["URL"],
                     ]
-                logging.info("Uploading…")
-                subprocess.check_call(
-                    [
-                        "aws",
-                        "s3",
-                        "sync",
-                        d,
-                        f"s3://{args_parsed.to_s3_bucket}",
-                        "--size-only",
-                        "--exclude",
-                        "*",
-                        *sync_include_args,
-                    ]
-                )
+                if len(sync_include_args):
+                    logging.info("Uploading…")
+                    subprocess.check_call(
+                        [
+                            "aws",
+                            "s3",
+                            "sync",
+                            d,
+                            f"s3://{args_parsed.to_s3_bucket}",
+                            "--size-only",
+                            "--exclude",
+                            "*",
+                            *sync_include_args,
+                        ]
+                    )
         else:
             logging.info("All paths already exist in upstream caches.")
 

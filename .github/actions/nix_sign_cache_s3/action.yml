@@ -55,7 +55,9 @@ runs:
       run: |
         umask 077
         echo "${{ inputs.nix_private_key }}" > ~/nix-private-key
-        nix store sign --recursive --key-file ~/nix-private-key ${{ inputs.flake_outputs }}
+        for output in ${{ inputs.flake_outputs }}; do
+          nix store sign --recursive --key-file ~/nix-private-key $output && echo "Successfully signed $output" || echo "Failed to sign $output"
+        done
     - name: Push to S3 Cache
       shell: ${{ inputs.shell }}
       if: inputs.s3_bucket_name != '' && inputs.nix_public_key != '' && inputs.nix_private_key != '' && inputs.aws_region != '' && inputs.aws_access_key_id != '' && inputs.aws_secret_access_key != ''
