@@ -51,6 +51,7 @@
         (
           pkgs': pkgs: {
             buildPythonEnvForInterpreter = (import ./nix/build-python-env-for-interpreter.nix) lib;
+            fetchGitHubSnapshot = lib.callPackageWith pkgs' ./nix/fetch_github_snapshot.nix {};
           }
         )
         (
@@ -104,9 +105,8 @@
           yosys = callPackage ./nix/yosys.nix {};
           yosys-sby = callPackage ./nix/yosys-sby.nix {};
           yosys-eqy = callPackage ./nix/yosys-eqy.nix {};
-          yosys-f4pga-sdc = callPackage ./nix/yosys-f4pga-sdc.nix {};
           yosys-lighter = callPackage ./nix/yosys-lighter.nix {};
-          yosys-synlig-sv = callPackage ./nix/yosys-synlig-sv.nix {};
+          yosys-slang = callPackage ./nix/yosys-slang.nix {};
           yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {};
         })
       ];

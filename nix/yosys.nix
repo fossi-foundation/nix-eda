@@ -76,7 +76,7 @@ in
       url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys.tar.gz";
       inherit sha256;
     };
-    
+
     unpackPhase = ''
       tar -xzvC . -f ${finalAttrs.src}
     '';
@@ -95,7 +95,7 @@ in
       zlib
       boost185
     ];
-    
+
     buildInputs = [
       (python3.withPackages (ps:
         with ps; [
