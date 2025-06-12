@@ -19,9 +19,9 @@
   cmake,
   fmt,
   jq,
-  rev ? "4cd0b9e2543c3dd2d24c680ffb8cce1e247f635c",
+  rev ? "142641f2062a5eaa42d5bdf23982eb82b01fe76a",
   rev-date ? "2025-06-12",
-  hash ? "sha256-IgpXyeZLWRHKcWvVEjY4+rpNw2Y8F6JWGHsmQO9quEg=",
+  hash ? "sha256-BuG4k5vgWgrDYIprg95aCPeXjKBk378jSxyPom7Iw2M=",
 }:
 clang18Stdenv.mkDerivation {
   name = "yosys-slang";
@@ -52,6 +52,9 @@ clang18Stdenv.mkDerivation {
   '';
 
   doCheck = true;
+  
+  # Release, at least in Nix, is broken. Can't figure out why entirely.
+  cmakeBuildType = "Debug";
 
   installPhase = ''
     runHook preBuild
