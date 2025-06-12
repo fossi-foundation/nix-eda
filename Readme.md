@@ -32,7 +32,6 @@ We compile and cache the tools for the following platforms:
 * [Yosys](https://github.com/YosysHQ/yosys)
     * (+ `.pyosys` for Python module)
     * (+ some plugins that can be accessed programmatically)
-    * (`yosysFull` for all plugins)
 
 ## Installation
 
