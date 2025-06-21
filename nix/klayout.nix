@@ -1,3 +1,7 @@
+# Copyright 2025 nix-eda Contributors
+#
+# Adapted from efabless/nix-eda
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,130 +58,116 @@
   # Python environments
   klayout,
   buildPythonEnvForInterpreter,
-}: let
-  pythonModule = python3.pkgs.toPythonModule (clangStdenv.mkDerivation {
-    name = "${python3.name}-klayout";
-    buildInputs = [self];
-    unpackPhase = "true";
-    installPhase = ''
-      mkdir -p $out/${python3.sitePackages}
-      ln -s ${self}/lib/pymod/klayout $out/${python3.sitePackages}/klayout
-      ln -s ${self}/lib/pymod/pya $out/${python3.sitePackages}/pya
-      ln -s ${self}/lib/pymod/klayout*.dist-info $out/${python3.sitePackages}/
-    '';
-    meta = with lib; {
-      description = "Python API access to KLayout";
-      license = with licenses; [gpl3Plus];
-      homepage = "https://www.klayout.de/";
-      platforms = platforms.all;
-    };
-  });
-  self = clangStdenv.mkDerivation {
-    pname = "klayout";
-    inherit version;
+}:
+clangStdenv.mkDerivation {
+  pname = "klayout";
+  inherit version;
 
-    src = fetchurl {
-      url = "https://github.com/KLayout/klayout/archive/refs/tags/v${version}.tar.gz";
-      inherit sha256;
-    };
+  outputs = ["out" "python"];
 
-    patches = [
-      ./patches/klayout/abspath.patch
-    ];
+  src = fetchurl {
+    url = "https://github.com/KLayout/klayout/archive/refs/tags/v${version}.tar.gz";
+    inherit sha256;
+  };
 
-    postPatch = ''
-      substituteInPlace src/klayout.pri --replace "-Wno-reserved-user-defined-literal" ""
-      patchShebangs .
-    '';
+  patches = [
+    ./patches/klayout/abspath.patch
+  ];
 
-    nativeBuildInputs = [
-      which
-      perl
-      (python3.withPackages (ps: with ps; [setuptools]))
-      ruby
-      gnused
-      libsForQt5.wrapQtAppsHook
-    ];
+  postPatch = ''
+    substituteInPlace src/klayout.pri --replace "-Wno-reserved-user-defined-literal" ""
+    patchShebangs .
+  '';
 
-    buildInputs = with libsForQt5; [
-      qtbase
-      qtmultimedia
-      qttools
-      qtxmlpatterns
-      curl
-      gcc
-      libgit2
-      libpng
-    ];
+  nativeBuildInputs = [
+    which
+    perl
+    (python3.withPackages (ps: with ps; [setuptools]))
+    ruby
+    gnused
+    libsForQt5.wrapQtAppsHook
+  ];
 
-    propagatedBuildInputs = [
-      ruby
-    ];
+  buildInputs = with libsForQt5; [
+    qtbase
+    qtmultimedia
+    qttools
+    qtxmlpatterns
+    curl
+    gcc
+    libgit2
+    libpng
+  ];
 
-    configurePhase =
-      (lib.strings.optionalString clangStdenv.isDarwin ''
-        export MAC_LIBGIT2_INC="${libgit2}/include"
-        export MAC_LIBGIT2_LIB="${libgit2}/lib"
-        export LDFLAGS="-headerpad_max_install_names"
-      '')
-      + ''
-        python3 ./setup.py egg_info
-        ./build.sh\
-          -prefix $out/lib\
-          -with-qtbinding\
-          -python $(which python3)\
-          -ruby $(which ruby)\
-          -expert\
-          -verbose\
-          -dry-run
-      '';
+  propagatedBuildInputs = [
+    ruby
+  ];
 
-    buildPhase = ''
-      echo "Using $NIX_BUILD_CORES threads…"
-      make -j$NIX_BUILD_CORES -C build-release PREFIX=$out
+  configurePhase =
+    (lib.strings.optionalString clangStdenv.isDarwin ''
+      export MAC_LIBGIT2_INC="${libgit2}/include"
+      export MAC_LIBGIT2_LIB="${libgit2}/lib"
+      export LDFLAGS="-headerpad_max_install_names"
+    '')
+    + ''
+      python3 ./setup.py egg_info
+      ./build.sh\
+        -prefix $out/lib\
+        -with-qtbinding\
+        -python $(which python3)\
+        -ruby $(which ruby)\
+        -expert\
+        -verbose\
+        -dry-run
     '';
 
-    installPhase =
+  buildPhase = ''
+    echo "Using $NIX_BUILD_CORES threads…"
+    make -j$NIX_BUILD_CORES -C build-release PREFIX=$out
+  '';
+
+  installPhase =
+    ''
+      mkdir -p $out/bin
+      make -C build-release install
+      cp -r src/pymod/distutils_src/klayout.egg-info $out/lib/pymod/klayout-${version}.dist-info
+
+      mkdir -p $python/${python3.sitePackages}
+      ln -s $out/lib/pymod/klayout $python/${python3.sitePackages}/klayout
+      ln -s $out/lib/pymod/pya $python/${python3.sitePackages}/pya
+      ln -s $out/lib/pymod/klayout*.dist-info $python/${python3.sitePackages}/
+    ''
+    + (
+      if clangStdenv.isDarwin
+      then ''
+        cp $out/lib/klayout.app/Contents/MacOS/klayout $out/bin/
       ''
-        mkdir -p $out/bin
-        make -C build-release install
-        cp -r src/pymod/distutils_src/klayout.egg-info $out/lib/pymod/klayout-${version}.dist-info
+      else ''
+        cp $out/lib/klayout $out/bin/
       ''
-      + (
-        if clangStdenv.isDarwin
-        then ''
-          cp $out/lib/klayout.app/Contents/MacOS/klayout $out/bin/
-        ''
-        else ''
-          cp $out/lib/klayout $out/bin/
-        ''
-      );
+    );
 
-    # The automatic Qt wrapper overrides makeWrapperArgs
-    preFixup = lib.strings.optionalString clangStdenv.isDarwin ''
-      python3 ${./supporting/klayout/patch_binaries.py} $out/lib $out/lib/pymod/klayout $out/bin/klayout
-    '';
+  # The automatic Qt wrapper overrides makeWrapperArgs
+  preFixup = lib.strings.optionalString clangStdenv.isDarwin ''
+    python3 ${./supporting/klayout/patch_binaries.py} $out/lib $out/lib/pymod/klayout $out/bin/klayout
+  '';
 
-    passthru = {
-      inherit python3;
+  passthru = {
+    inherit python3;
 
-      pymod = pythonModule;
-
-      withPythonPackages = buildPythonEnvForInterpreter {
-        target = klayout;
-        inherit lib;
-        inherit buildEnv;
-        inherit makeBinaryWrapper;
-      };
-    };
-
-    meta = with lib; {
-      description = "High performance layout viewer and editor with support for GDS and OASIS";
-      license = with licenses; [gpl3Plus];
-      homepage = "https://www.klayout.de/";
-      changelog = "https://www.klayout.de/development.html#${version}";
-      platforms = platforms.linux ++ platforms.darwin;
+    withPythonPackages = buildPythonEnvForInterpreter {
+      target = klayout;
+      inherit lib;
+      inherit buildEnv;
+      inherit makeBinaryWrapper;
     };
   };
-in
-  self
+
+  meta = with lib; {
+    description = "High performance layout viewer and editor with support for GDS and OASIS";
+    license = with licenses; [gpl3Plus];
+    homepage = "https://www.klayout.de/";
+    changelog = "https://www.klayout.de/development.html#${version}";
+    platforms = platforms.linux ++ platforms.darwin;
+  };
+}

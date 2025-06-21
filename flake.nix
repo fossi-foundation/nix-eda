@@ -17,7 +17,7 @@
 # limitations under the License.
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
   };
   outputs = {
     self,
@@ -61,6 +61,14 @@
           self.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
             callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
           in {
+            kfactory = pypkgs.kfactory.overrideAttrs (attrs': attrs: {
+              version = "1.9.3";
+              src = pypkgs'.fetchPypi {
+                inherit (attrs') pname version;
+                sha256 = "sha256-1HC+Ip+BbjbyjuYjF44DOLOglndvibd+grdAYzoLfHQ=";
+              };
+            });
+            pyglet = callPythonPackage ./nix/pyglet.nix {};
             gdsfactory = callPythonPackage ./nix/gdsfactory.nix {};
             gdstk = callPythonPackage ./nix/gdstk.nix {};
             tclint = callPythonPackage ./nix/tclint.nix {};
