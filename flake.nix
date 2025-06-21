@@ -148,7 +148,7 @@
             ]
             ++ lib.optionals pkgs.stdenv.isx86_64 [yosys-ghdl]);
           inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory surelog tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
-          inherit (pkgs) gdsfactory gdstk tclint;
+          inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
           inherit (pkgs) xyce;
