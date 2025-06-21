@@ -1,3 +1,7 @@
+# Copyright 2025 nix-eda Contributors
+#
+# Adapted from efabless/nix-eda
+#
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +17,7 @@
 # limitations under the License.
 {
   inputs = {
-    nixpkgs.url = github:nixos/nixpkgs/nixos-24.11;
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
   };
   outputs = {
     self,
