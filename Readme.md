@@ -36,7 +36,7 @@ We compile and cache the tools for the following platforms:
 
 ## Installation
 
-See [Installation.md](./Installation.md).
+See [docs/installation.md](./docs/installation.md).
 
 ## Usage
 
@@ -55,9 +55,16 @@ You may also create a shell with multiple tools as follows:
 nix shell github:fossi-foundation/nix-eda#{magic,xschem}
 ```
 
+### Flake API
+
+See [docs/flake_api.md](./docs/flake_api.md).
+
 ## ⚖️ License
 
-The Apache License, version 2.0. See 'License'.
+The Apache License, version 2.0. See 'License'. See [Authors.md](./Authors.md)
+for a list of authors and copyright holders.
+
+Binary cache is hosted by the FOSSi Foundation.
 
 nix-eda is based on [nix-eda](https://github.com/efabless/nix-eda)
 by Efabless Corporation:
