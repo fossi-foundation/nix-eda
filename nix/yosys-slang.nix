@@ -26,6 +26,7 @@
 clang18Stdenv.mkDerivation {
   name = "yosys-slang";
   version = rev-date;
+  dylibs = ["slang"];
 
   src = fetchGitHubSnapshot {
     owner = "povik";
@@ -40,7 +41,7 @@ clang18Stdenv.mkDerivation {
   ];
 
   nativeBuildInputs = [cmake jq]; # ninja doesn't work, cba to debug why
-  buildInputs = [yosys yosys.python3 fmt];
+  buildInputs = [yosys yosys.python3-env fmt];
 
   patchPhase = ''
     runHook prePatch

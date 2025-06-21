@@ -121,6 +121,16 @@
           yosys-slang = callPackage ./nix/yosys-slang.nix {};
           yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {};
         })
+        (
+          self.composePythonOverlay (
+            pkgs': pkgs: pypkgs': pypkgs: let
+              callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            in {
+              pyosys = pypkgs'.toPythonModule (pypkgs'.yosys.override {python3 = pypkgs'.python;}).python;
+              klayout-pymod = pypkgs'.toPythonModule (pypkgs'.klayout.override {python3 = pypkgs'.python;}).python;
+            }
+          )
+        )
       ];
     };
 
@@ -142,11 +152,10 @@
             [
               yosys-sby
               yosys-eqy
-              yosys-f4pga-sdc
               yosys-lighter
-              yosys-synlig-sv
+              yosys-slang
             ]
-            ++ lib.optionals pkgs.stdenv.isx86_64 [yosys-ghdl]);
+            ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]);
           inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory surelog tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
           inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
         }

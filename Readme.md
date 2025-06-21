@@ -21,7 +21,7 @@ We compile and cache the tools for the following platforms:
 * [Netgen](http://opencircuitdesign.com/netgen)
 * [ngspice](https://ngspice.sourceforge.io)
 * [KLayout](https://klayout.de)
-    * (+ `.python` for Python module)
+    * (+ `.python3.pkgs.klayout-pymod` for Python module)
 * [GDSFactory](https://github.com/gdsfactory/gdsfactory)
     * (+ `klayout-gdsfactory` as a shorthand for an environment with both installed)
 * [Surelog](https://github.com/chipsalliance/Surelog)
@@ -30,7 +30,7 @@ We compile and cache the tools for the following platforms:
 * [Xyce](https://github.com/xyce/xyce)
     * Linux only.
 * [Yosys](https://github.com/YosysHQ/yosys)
-    * (+ `.pyosys` for Python module)
+    * (+ `python3.pkgs.pyosys` for Python module)
     * (+ some plugins that can be accessed programmatically)
     * (`yosysFull` for all plugins)
 

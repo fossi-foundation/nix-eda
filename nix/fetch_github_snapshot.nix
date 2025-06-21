@@ -56,9 +56,11 @@ stdenvNoCC.mkDerivation {
       https://github.com/${owner}/${repo} \
       ${rev}
   '';
-  impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ [
-    "GITHUB_TOKEN"
-  ];
+  impureEnvVars =
+    lib.fetchers.proxyImpureEnvVars
+    ++ [
+      "GITHUB_TOKEN"
+    ];
   outputHash = hash;
   outputHashAlgo =
     if hash == ""
