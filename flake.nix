@@ -55,6 +55,7 @@
         (
           pkgs': pkgs: {
             buildPythonEnvForInterpreter = (import ./nix/build-python-env-for-interpreter.nix) lib;
+            fetchGitHubSnapshot = lib.callPackageWith pkgs' ./nix/fetch_github_snapshot.nix {};
           }
         )
         (
@@ -116,19 +117,9 @@
           yosys = callPackage ./nix/yosys.nix {};
           yosys-sby = callPackage ./nix/yosys-sby.nix {};
           yosys-eqy = callPackage ./nix/yosys-eqy.nix {};
-          yosys-f4pga-sdc = callPackage ./nix/yosys-f4pga-sdc.nix {};
           yosys-lighter = callPackage ./nix/yosys-lighter.nix {};
-          yosys-synlig-sv = callPackage ./nix/yosys-synlig-sv.nix {};
+          yosys-slang = callPackage ./nix/yosys-slang.nix {};
           yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {};
-          yosysFull = pkgs'.yosys.withPlugins (with pkgs';
-            [
-              yosys-sby
-              yosys-eqy
-              yosys-f4pga-sdc
-              yosys-lighter
-              yosys-synlig-sv
-            ]
-            ++ lib.optionals pkgs.stdenv.isx86_64 [yosys-ghdl]);
         })
       ];
     };
@@ -143,16 +134,27 @@
 
     # Outputs
     packages = self.forAllSystems (
-      system:
+      system: let
+        pkgs = self.legacyPackages."${system}";
+      in
         {
-          inherit (self.legacyPackages."${system}") magic magic-vlsi netgen klayout klayout-gdsfactory surelog tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-f4pga-sdc yosys-lighter yosys-synlig-sv yosysFull;
-          inherit (self.legacyPackages."${system}".python3.pkgs) gdsfactory gdstk tclint;
+          yosysFull = pkgs.yosys.withPlugins (with pkgs;
+            [
+              yosys-sby
+              yosys-eqy
+              yosys-f4pga-sdc
+              yosys-lighter
+              yosys-synlig-sv
+            ]
+            ++ lib.optionals pkgs.stdenv.isx86_64 [yosys-ghdl]);
+          inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory surelog tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
+          inherit (pkgs) gdsfactory gdstk tclint;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
-          inherit (self.legacyPackages."${system}") xyce;
+          inherit (pkgs) xyce;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isx86_64 {
-          inherit (self.legacyPackages."${system}") yosys-ghdl;
+          inherit (pkgs) yosys-ghdl;
         }
     );
   };
