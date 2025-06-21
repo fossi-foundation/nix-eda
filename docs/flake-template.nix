@@ -5,18 +5,22 @@
 
     # The following entries show how to incorporate other inputs without
     # having multiple nix-eda instances OR multiple nixpkgs instances.
-    
+
     # To depend on another nix-eda-based flake:
-    /* librelane = {
+    /*
+       librelane = {
       url = "github:librelane/librelane";
       inputs.nix-eda.follows = "nix-eda";
-    }; */
-    
+    };
+    */
+
     # To depend on another nixpkgs-based flake:
-    /* devshell = {
+    /*
+       devshell = {
       url = "github:numtide/devshell";
       inputs.nixpkgs.follows = "nix-eda/nixpkgs";
-    }; */
+    };
+    */
   };
 
   outputs = {
@@ -33,7 +37,7 @@
         (pkgs': pkgs: let
           callPackage = lib.callPackageWith pkgs';
         in {
-            # Add binary derivations here
+          # Add binary derivations here
         })
         (
           nix-eda.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let

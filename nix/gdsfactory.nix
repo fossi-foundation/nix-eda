@@ -1,3 +1,7 @@
+# Copyright 2025 nix-eda Contributors
+#
+# Adapted from efabless/nix-eda
+#
 # Copyright 2024 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,137 +44,30 @@
   freetype-py,
   mapbox-earcut,
   networkx,
-  trimesh,
   ipykernel,
   attrs,
-  aenum,
-  cachetools,
-  gitpython,
-  loguru,
-  requests,
-  tomli,
-  cython_0,
-  ruamel-yaml,
   jinja2,
   graphviz,
+  rectangle-packer,
+  rectpack,
+  kfactory,
+  trimesh,
+  pyglet,
+  pytestCheckHook,
+  scikit-image,
+  # Metadata
+  version ? "9.9.1",
+  sha256 ? "sha256-rL/9clBJq/z7PyKKArGuAx2xtxce/3N3oPMIOiZA3VU=",
 }: let
-  rectangle-packer = buildPythonPackage {
-    pname = "rectangle-packer";
-    format = "pyproject";
-    version = "2.0.2";
-
-    buildInputs = [
-      setuptools
-      cython_0
-    ];
-
-    propagatedBuildInputs = [
-    ];
-
-    src = fetchPypi {
-      inherit (rectangle-packer) pname version;
-      sha256 = "sha256-NORQApJV9ybEqObpOaGMrVh58Nn+WIwYeP6FyHLcvkE=";
-    };
-    doCheck = false;
-  };
-
-  rectpack = buildPythonPackage {
-    pname = "rectpack";
-    format = "pyproject";
-    version = "0.2.2";
-
-    buildInputs = [
-      setuptools
-    ];
-
-    propagatedBuildInputs = [
-    ];
-
-    src = fetchPypi {
-      inherit (rectpack) pname version;
-      sha256 = "sha256-FeODUF/fuutV7GQKWCXZyizokBmmzdVS1uV+w2xouio=";
-    };
-    doCheck = false;
-  };
-
-  ruamel-yaml-string = buildPythonPackage {
-    pname = "ruamel.yaml.string";
-    format = "pyproject";
-    version = "0.1.1";
-
-    buildInputs = [
-      setuptools
-    ];
-
-    propagatedBuildInputs = [
-      ruamel-yaml
-    ];
-
-    src = fetchPypi {
-      inherit (ruamel-yaml-string) pname version;
-      sha256 = "sha256-enrtzAVdRcAE04t1b1hHTr77EGhR9M5WzlhBVwl4Q1A=";
-    };
-    doCheck = false;
-  };
-
-  kfactory = buildPythonPackage {
-    pname = "kfactory";
-    format = "pyproject";
-    version = "0.21.7";
-
-    buildInputs = [
-      setuptools
-      setuptools_scm
-    ];
-
-    propagatedBuildInputs = [
-      aenum
-      cachetools
-      gitpython
-      loguru
-      klayout.pymod
-      pydantic
-      pydantic-settings
-      rectangle-packer
-      requests
-      ruamel-yaml-string
-      scipy
-      tomli
-      toolz
-      typer
-    ];
-
-    src = fetchPypi {
-      inherit (kfactory) pname version;
-      sha256 = "sha256-+e7n00nFTPxnUP36mdpbz4G8ntq9Ay/R7+sdIRQoI1E=";
-    };
-    doCheck = false;
-  };
-
-  trimesh = buildPythonPackage {
-    pname = "trimesh";
-    format = "pyproject";
-    version = "4.4.1";
-
-    buildInputs = [
-      setuptools
-    ];
-
-    propagatedBuildInputs = [
-      numpy
-    ];
-
-    src = fetchPypi {
-      inherit (trimesh) pname version;
-      sha256 = "sha256-dn/jyGa6dObZqdIWw07MHP4vvz8SmmwR1ZhxcFpZGro=";
-    };
-    doCheck = false;
-  };
-
   self = buildPythonPackage {
     pname = "gdsfactory";
     format = "pyproject";
-    version = "8.19.0";
+    inherit version;
+
+    src = fetchPypi {
+      inherit (self) pname version;
+      inherit sha256;
+    };
 
     buildInputs = [
       flit-core
@@ -198,24 +95,18 @@
       freetype-py
       mapbox-earcut
       networkx
-      #scikit-image
+      scikit-image
       trimesh
       ipykernel
       attrs
       jinja2
       graphviz
+      pyglet
     ];
 
-    src = fetchPypi {
-      inherit (self) pname version;
-      sha256 = "sha256-J5MsnYx0GzvzhjVJK6Sa5TrYdx98OQwDXaUGX7AabvQ=";
-    };
-    doCheck = false;
+    nativeCheckInputs = [pytestCheckHook];
 
-    postPatch = ''
-      substituteInPlace pyproject.toml \
-        --replace "\"scikit-image\"," ""
-    '';
+    doCheck = true;
 
     meta = {
       description = "python library to design chips (Photonics, Analog, Quantum, MEMs, ...), objects for 3D printing or PCBs.";

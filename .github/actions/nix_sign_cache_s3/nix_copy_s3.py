@@ -119,7 +119,9 @@ def main(text_args):
             )
         except subprocess.CalledProcessError as e:
             if "is not valid" in e.stderr:
-                logging.warning(f"Failed to get store paths for {flake_output} -- assuming broken, skipping…")
+                logging.warning(
+                    f"Failed to get store paths for {flake_output} -- assuming broken, skipping…"
+                )
                 continue
             else:
                 raise e from None

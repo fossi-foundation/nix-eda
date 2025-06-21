@@ -1,4 +1,4 @@
-# Copyright 2023 Efabless Corporation
+# Copyright 2025 nix-eda Contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,55 +35,37 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
   lib,
-  yosys,
-  fetchFromGitHub,
+  stdenvNoCC,
   python3,
-  ghdl-mcode,
-  ghdl-llvm,
-  pkg-config,
-  rev ? "c9b05e481423c55ffcbb856fd5296701f670808c",
-  rev-date ? "2022-01-11",
-  sha256 ? "sha256-tT2+DXUtbJIBzBUBcyG2sz+3G+dTkciLVIczcRPr0Jw=",
-}: let
-  ghdl =
-    if yosys.stdenv.isLinux
-    then ghdl-mcode
-    else ghdl-llvm;
-in
-  yosys.stdenv.mkDerivation {
-    pname = "yosys-ghdl";
-    version = rev-date;
-
-    dylibs = ["ghdl"];
-
-    src = fetchFromGitHub {
-      owner = "ghdl";
-      repo = "ghdl-yosys-plugin";
-      inherit rev;
-      inherit sha256;
-    };
-
-    buildInputs = [
-      yosys
-      python3
-      ghdl
+  preferLocalBuild ? true,
+}: {
+  owner,
+  repo,
+  rev,
+  hash,
+}:
+stdenvNoCC.mkDerivation {
+  name = "github-${repo}-${rev}-snapshot";
+  nativeBuildInputs = [
+    (python3.withPackages (ps: with ps; [click httpx truststore]))
+  ];
+  phases = ["installPhase"];
+  installPhase = ''
+    python3 ${./supporting/download_github_snapshot.py} \
+      --out-dir $out \
+      https://github.com/${owner}/${repo} \
+      ${rev}
+  '';
+  impureEnvVars =
+    lib.fetchers.proxyImpureEnvVars
+    ++ [
+      "GITHUB_TOKEN"
     ];
-
-    nativeBuildInputs = [
-      pkg-config
-    ];
-
-    doCheck = false;
-
-    installPhase = ''
-      mkdir -p $out/share/yosys/plugins
-      cp ghdl.so $out/share/yosys/plugins/ghdl.so
-    '';
-
-    meta = {
-      description = "VHDL synthesis (based on GHDL and Yosys)";
-      homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
-      license = lib.licenses.gpl3Plus;
-      inherit (ghdl.meta) platforms;
-    };
-  }
+  outputHash = hash;
+  outputHashAlgo =
+    if hash == ""
+    then "sha256"
+    else null;
+  outputHashMode = "recursive";
+  inherit preferLocalBuild;
+}
