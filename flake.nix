@@ -108,7 +108,6 @@
           klayout = callPackage ./nix/klayout.nix {};
           #
           klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix {};
-          surelog = callPackage ./nix/surelog.nix {};
           tclFull = callPackage ./nix/tclFull.nix {};
           tk-x11 = callPackage ./nix/tk-x11.nix {};
           verilator = callPackage ./nix/verilator.nix {};
@@ -156,7 +155,7 @@
               yosys-slang
             ]
             ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]);
-          inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory surelog tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
+          inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
           inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {

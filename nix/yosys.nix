@@ -125,11 +125,15 @@ in let self = clangStdenv.mkDerivation (finalAttrs: {
         exec "\$@"
         SCRIPT
         chmod +x $out/bin/with_yosys_plugin_env
-        wrapProgram $out/bin/yosys \
+        cp $out/bin/yosys $out/bin/yosys_with_plugins
+        wrapProgram $out/bin/yosys_with_plugins \
           --set NIX_YOSYS_PLUGIN_DIRS $out/share/yosys/plugins \
           ${module_flags}
       '';
       inherit (yosys) passthru;
+      meta = {
+        mainProgram = "yosys_with_plugins";
+      };
     });
     withPythonPackages = buildPythonEnvForInterpreter {
       target = yosys;

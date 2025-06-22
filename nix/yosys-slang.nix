@@ -64,4 +64,11 @@ clang18Stdenv.mkDerivation {
     cp slang.so $out/share/yosys/plugins
     runHook postBuild
   '';
+  
+  meta = {
+    description = "SystemVerilog frontend for Yosys";
+    license = [lib.licenses.mit];
+    homepage = "https://github.com/povik/yosys-slang";
+    platforms = lib.platforms.all;
+  };
 }

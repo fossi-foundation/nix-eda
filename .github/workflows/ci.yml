@@ -51,15 +51,24 @@ jobs:
         uses: ./.github/actions/nix_daemon_inject_github_token
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Get all packages
+      - id: enumerate_packages
+        name: Get all packages
         run: |
           echo "FLAKE_OUTPUTS=$(python3 ./.github/workflows/get_all_packages.py)" >> $GITHUB_ENV
       - name: Build All
         run: |
-          nix build --no-link ${{ env.FLAKE_OUTPUTS }}
+          set +e
+          error=0
+          for flake in $FLAKE_OUTPUTS; do
+            echo "Building $flake..."
+            nix build --no-link $flake --show-trace
+            error=$((error | $?))
+          done
+          set -e
+          exit $error
       - name: Sign and Cache Nix Builds to S3
         uses: ./.github/actions/nix_sign_cache_s3
-        if: always()
+        if: steps.enumerate_packages.outcome == 'success'
         with:
           flake_outputs: ${{ env.FLAKE_OUTPUTS }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}

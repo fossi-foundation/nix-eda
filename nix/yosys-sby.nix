@@ -72,6 +72,6 @@ yosys.stdenv.mkDerivation (finalAttrs: {
     homepage = "https://github.com/YosysHQ/sby";
     mainProgram = "sby";
     license = licenses.mit;
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = platforms.all;
   };
 })

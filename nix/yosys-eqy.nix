@@ -97,6 +97,6 @@ yosys.stdenv.mkDerivation (finalAttrs: {
     homepage = "https://github.com/yosysHQ/eqy";
     mainProgram = "eqy";
     license = licenses.mit;
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = platforms.all;
   };
 })

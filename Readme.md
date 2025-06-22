@@ -24,7 +24,6 @@ We compile and cache the tools for the following platforms:
     * (+ `.python3.pkgs.klayout-pymod` for Python module)
 * [GDSFactory](https://github.com/gdsfactory/gdsfactory)
     * (+ `klayout-gdsfactory` as a shorthand for an environment with both installed)
-* [Surelog](https://github.com/chipsalliance/Surelog)
 * [Verilator](https://verilator.org)
 * [Xschem](https://xschem.sourceforge.io/stefan/index.html)
 * [Xyce](https://github.com/xyce/xyce)
