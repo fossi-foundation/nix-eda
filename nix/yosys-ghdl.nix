@@ -84,6 +84,7 @@ in
       description = "VHDL synthesis (based on GHDL and Yosys)";
       homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
       license = lib.licenses.gpl3Plus;
-      inherit (ghdl.meta) platforms;
+      # inherit (ghdl.meta) platforms; # lists non-functioning platforms
+      platforms = ["x86_64-linux" "x86_64-darwin"];
     };
   }

@@ -90,10 +90,6 @@
             x11Support = true;
           };
 
-          ghdl-llvm = pkgs.ghdl-llvm.overrideAttrs (self: super: {
-            meta.platforms = super.meta.platforms ++ ["x86_64-darwin"];
-          });
-
           ## slightly worse floating point errors cause ONE of the tests to fail
           ## on x86_64-darwin
           qrupdate = pkgs.qrupdate.overrideAttrs (self: super: {
