@@ -121,8 +121,8 @@
             pkgs': pkgs: pypkgs': pypkgs: let
               callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
             in {
-              pyosys = pypkgs'.toPythonModule (pypkgs'.yosys.override {python3 = pypkgs'.python;}).python;
-              klayout-pymod = pypkgs'.toPythonModule (pypkgs'.klayout.override {python3 = pypkgs'.python;}).python;
+              pyosys = pypkgs'.toPythonModule (pkgs'.yosys.override {python3 = pypkgs'.python;}).python;
+              klayout-pymod = pypkgs'.toPythonModule (pkgs'.klayout.override {python3 = pypkgs'.python;}).python;
             }
           )
         )
