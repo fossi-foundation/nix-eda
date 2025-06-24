@@ -32,6 +32,16 @@ We compile and cache the tools for the following platforms:
     * (+ `python3.pkgs.pyosys` for Python module)
     * (+ some plugins that can be accessed programmatically)
     * (`yosysFull` for all plugins)
+    
+> [!NOTE]  
+> As of the time of writing, if you're using KLayout andgdsfactory for sky130
+> PCells, the versions of klayout and gdsfactory in nix-eda 5.0.0+ are 
+> incompatible as the PCells are out-of-date.
+>
+> You can pull the latest working version, nix-eda 4.3.1, (based on NixOS 24.05) 
+> as follows:
+>
+> `nix shell github:fossi-foundation/nix-eda/4.3.1#klayout-gdsfactory`
 
 ## Installation
 
