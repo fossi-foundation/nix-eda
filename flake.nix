@@ -102,6 +102,7 @@
           netgen = callPackage ./nix/netgen.nix {};
           ngspice = callPackage ./nix/ngspice.nix {};
           klayout = callPackage ./nix/klayout.nix {};
+          klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
           #
           klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix {};
           tclFull = callPackage ./nix/tclFull.nix {};
@@ -122,7 +123,7 @@
               callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
             in {
               pyosys = pypkgs'.toPythonModule (pkgs'.yosys.override {python3 = pypkgs'.python;}).python;
-              klayout-pymod = pypkgs'.toPythonModule (pkgs'.klayout.override {python3 = pypkgs'.python;}).python;
+              klayout = pypkgs'.toPythonModule (pkgs'.klayout.override {python3 = pypkgs'.python;}).python;
             }
           )
         )

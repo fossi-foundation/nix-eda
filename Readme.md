@@ -21,7 +21,7 @@ We compile and cache the tools for the following platforms:
 * [Netgen](http://opencircuitdesign.com/netgen)
 * [ngspice](https://ngspice.sourceforge.io)
 * [KLayout](https://klayout.de)
-    * (+ `.python3.pkgs.klayout-pymod` for Python module)
+    * (+ `.python3.pkgs.klayout` for Python module)
 * [GDSFactory](https://github.com/gdsfactory/gdsfactory)
     * (+ `klayout-gdsfactory` as a shorthand for an environment with both installed)
 * [Verilator](https://verilator.org)
