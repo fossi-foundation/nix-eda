@@ -44,43 +44,47 @@
   rev ? "c9b05e481423c55ffcbb856fd5296701f670808c",
   rev-date ? "2022-01-11",
   sha256 ? "sha256-tT2+DXUtbJIBzBUBcyG2sz+3G+dTkciLVIczcRPr0Jw=",
-}:
-yosys.stdenv.mkDerivation {
-  pname = "yosys-ghdl";
-  version = rev-date;
+}: let
+  ghdl =
+    if yosys.stdenv.isLinux
+    then ghdl-mcode
+    else ghdl-llvm;
+in
+  yosys.stdenv.mkDerivation {
+    pname = "yosys-ghdl";
+    version = rev-date;
 
-  dylibs = ["ghdl"];
+    dylibs = ["ghdl"];
 
-  src = fetchFromGitHub {
-    owner = "ghdl";
-    repo = "ghdl-yosys-plugin";
-    inherit rev;
-    inherit sha256;
-  };
+    src = fetchFromGitHub {
+      owner = "ghdl";
+      repo = "ghdl-yosys-plugin";
+      inherit rev;
+      inherit sha256;
+    };
 
-  buildInputs =
-    [
+    buildInputs = [
       yosys
       python3
-    ]
-    ++ lib.optionals yosys.stdenv.isDarwin [ghdl-llvm]
-    ++ lib.optionals yosys.stdenv.isLinux [ghdl-mcode];
+      ghdl
+    ];
 
-  nativeBuildInputs = [
-    pkg-config
-  ];
+    nativeBuildInputs = [
+      pkg-config
+    ];
 
-  doCheck = false;
+    doCheck = false;
 
-  installPhase = ''
-    mkdir -p $out/share/yosys/plugins
-    cp ghdl.so $out/share/yosys/plugins/ghdl.so
-  '';
+    installPhase = ''
+      mkdir -p $out/share/yosys/plugins
+      cp ghdl.so $out/share/yosys/plugins/ghdl.so
+    '';
 
-  meta = with lib; {
-    description = "VHDL synthesis (based on GHDL and Yosys)";
-    homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
-    license = licenses.gpl3Plus;
-    platforms = ["x86_64-linux" "x86_64-darwin"];
-  };
-}
+    meta = {
+      description = "VHDL synthesis (based on GHDL and Yosys)";
+      homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
+      license = lib.licenses.gpl3Plus;
+      # inherit (ghdl.meta) platforms; # lists non-functioning platforms
+      platforms = ["x86_64-linux" "x86_64-darwin"];
+    };
+  }

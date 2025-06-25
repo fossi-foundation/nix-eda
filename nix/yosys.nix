@@ -1,3 +1,7 @@
+# Copyright 2025 nix-eda Contributors
+#
+# Adapted from efabless/nix-eda
+#
 # Copyright 2023 Efabless Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,11 +41,10 @@
   lib,
   symlinkJoin,
   clangStdenv,
-  fetchFromGitHub,
   pkg-config,
   cmake,
   makeWrapper,
-  boost185,
+  boost,
   python3,
   bison,
   flex,
@@ -52,95 +55,58 @@
   zlib,
   fetchurl,
   bash,
-  version ? "0.46",
-  sha256 ? "sha256-ofMHVxqNd9WRJJnPiqgy7t8LorHozuOPqOf8NLl0e4U=",
-  abc-sha256 ? "sha256-4KTrbk7JIJ97gfetKOoL4TYanPT09jk1b+78H0RQ234=",
+  version ? "0.54",
+  sha256 ? "sha256-meKlZh6ZiiPHwQCvS7Y667lvE9XWgIaual8c6SDpeDw=",
   # For environments
   yosys,
   buildEnv,
   buildPythonEnvForInterpreter,
   makeBinaryWrapper,
 }: let
-  abc = clangStdenv.mkDerivation {
-    name = "yosys-abc";
-
-    src = fetchurl {
-      url = "https://github.com/YosysHQ/yosys/releases/download/${version}/abc.tar.gz";
-      sha256 = abc-sha256;
-    };
-
-    patches = [
-      ./patches/yosys/abc-editline.patch
-    ];
-
-    postPatch = ''
-      sed -i "s@-lreadline@-ledit@" ./Makefile
-    '';
-
-    nativeBuildInputs = [cmake];
-    buildInputs = [libedit];
-
-    installPhase = "mkdir -p $out/bin && mv abc $out/bin";
-  };
-  boost-python = boost185.override {
+  boost-python = boost.override {
     python = python3;
     enablePython = true;
   };
-in
-  clangStdenv.mkDerivation {
+  yosys-python3-env = python3.withPackages (ps: with ps; [click setuptools wheel]);
+  site-packages = yosys-python3-env.sitePackages;
+in let
+  self = clangStdenv.mkDerivation (finalAttrs: {
     pname = "yosys";
     inherit version;
 
-    src = fetchFromGitHub {
-      owner = "YosysHQ";
-      repo = "yosys";
-      rev = "${version}";
+    outputs = ["out" "python"];
+
+    src = fetchurl {
+      url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys.tar.gz";
       inherit sha256;
     };
+
+    unpackPhase = ''
+      tar -xzvC . -f ${finalAttrs.src}
+    '';
 
     nativeBuildInputs = [
       pkg-config
       bison
       flex
     ];
+
     propagatedBuildInputs = [
       tcl
       libedit
       libbsd
       libffi
       zlib
-      boost185
+      boost-python
     ];
+
     buildInputs = [
-      (python3.withPackages (ps:
-        with ps; [
-          setuptools
-          wheel
-        ]))
-      abc
+      yosys-python3-env
     ];
 
     passthru = {
       inherit python3;
-      pyosys = python3.pkgs.toPythonModule (clangStdenv.mkDerivation {
-        pname = "${python3.name}-pyosys";
-        version = yosys.version;
-        buildInputs = [yosys];
-        unpackPhase = "true";
-        installPhase = ''
-          mkdir -p $out/${python3.sitePackages}
-          ln -s ${yosys}/${python3.sitePackages}/pyosys $out/${python3.sitePackages}/pyosys
-          mkdir -p $out/${python3.sitePackages}/pyosys-${version}.dist-info
-          sed 's/%VERSION%/${version}/' ${./supporting/yosys/PKG-INFO} > $out/${python3.sitePackages}/pyosys-${version}.dist-info/PKG-INFO
-          echo "pyosys" > $out/${python3.sitePackages}/pyosys-${version}.dist-info/top_level.txt
-        '';
-        meta = with lib; {
-          description = "Python API access to Yosys";
-          license = with licenses; [mit];
-          homepage = "https://yosyshq.com/";
-          platforms = platforms.all;
-        };
-      });
+      python3-env = yosys-python3-env;
       withPlugins = plugins: let
         paths = lib.closePropagation plugins;
         dylibs = lib.lists.flatten (map (n: n.dylibs) plugins);
@@ -160,11 +126,17 @@ in
           exec "\$@"
           SCRIPT
           chmod +x $out/bin/with_yosys_plugin_env
+          cp $out/bin/yosys $out/bin/yosys_with_plugins
           wrapProgram $out/bin/yosys \
+            --set NIX_YOSYS_PLUGIN_DIRS $out/share/yosys/plugins
+          wrapProgram $out/bin/yosys_with_plugins \
             --set NIX_YOSYS_PLUGIN_DIRS $out/share/yosys/plugins \
             ${module_flags}
         '';
         inherit (yosys) passthru;
+        meta = {
+          mainProgram = "yosys_with_plugins";
+        };
       });
       withPythonPackages = buildPythonEnvForInterpreter {
         target = yosys;
@@ -181,8 +153,7 @@ in
       "ENABLE_EDITLINE=1"
       "ENABLE_YOSYS=1"
       "ENABLE_PYOSYS=1"
-      "ABCEXTERNAL=${abc}/bin/abc"
-      "PYTHON_DESTDIR=${placeholder "out"}/${python3.sitePackages}"
+      "PYTHON_DESTDIR=${placeholder "python"}/${site-packages}"
       "BOOST_PYTHON_LIB=${boost-python}/lib/libboost_${python3.pythonAttr}${clangStdenv.hostPlatform.extensions.sharedLibrary}"
     ];
 
@@ -198,8 +169,9 @@ in
       set -x
     '';
 
-    postBuild = "ln -sfv ${abc}/bin/abc ./yosys-abc";
-    postInstall = "ln -sfv ${abc}/bin/abc $out/bin/yosys-abc";
+    postInstall = ''
+      python3 ./setup.py dist_info -o $python/${site-packages}
+    '';
 
     doCheck = false;
     enableParallelBuilding = true;
@@ -210,4 +182,6 @@ in
       homepage = "https://www.yosyshq.com/";
       platforms = platforms.all;
     };
-  }
+  });
+in
+  self

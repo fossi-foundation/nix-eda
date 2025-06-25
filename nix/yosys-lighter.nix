@@ -71,6 +71,6 @@ yosys.stdenv.mkDerivation (finalAttrs: {
     description = "An automatic clock gating utility.";
     homepage = "https://github.com/AUCOHL/Lighter";
     license = licenses.asl20;
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = platforms.all;
   };
 })

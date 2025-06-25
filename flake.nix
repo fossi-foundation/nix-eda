@@ -17,7 +17,7 @@
 # limitations under the License.
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
   };
   outputs = {
     self,
@@ -55,12 +55,21 @@
         (
           pkgs': pkgs: {
             buildPythonEnvForInterpreter = (import ./nix/build-python-env-for-interpreter.nix) lib;
+            fetchGitHubSnapshot = lib.callPackageWith pkgs' ./nix/fetch_github_snapshot.nix {};
           }
         )
         (
           self.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
             callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
           in {
+            kfactory = pypkgs.kfactory.overrideAttrs (attrs': attrs: {
+              version = "1.9.3";
+              src = pypkgs'.fetchPypi {
+                inherit (attrs') pname version;
+                sha256 = "sha256-1HC+Ip+BbjbyjuYjF44DOLOglndvibd+grdAYzoLfHQ=";
+              };
+            });
+            pyglet = callPythonPackage ./nix/pyglet.nix {};
             gdsfactory = callPythonPackage ./nix/gdsfactory.nix {};
             gdstk = callPythonPackage ./nix/gdstk.nix {};
             tclint = callPythonPackage ./nix/tclint.nix {};
@@ -81,10 +90,6 @@
             x11Support = true;
           };
 
-          ghdl-llvm = pkgs.ghdl-llvm.overrideAttrs (self: super: {
-            meta.platforms = super.meta.platforms ++ ["x86_64-darwin"];
-          });
-
           ## slightly worse floating point errors cause ONE of the tests to fail
           ## on x86_64-darwin
           qrupdate = pkgs.qrupdate.overrideAttrs (self: super: {
@@ -97,9 +102,9 @@
           netgen = callPackage ./nix/netgen.nix {};
           ngspice = callPackage ./nix/ngspice.nix {};
           klayout = callPackage ./nix/klayout.nix {};
+          klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
           #
           klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix {};
-          surelog = callPackage ./nix/surelog.nix {};
           tclFull = callPackage ./nix/tclFull.nix {};
           tk-x11 = callPackage ./nix/tk-x11.nix {};
           verilator = callPackage ./nix/verilator.nix {};
@@ -108,20 +113,20 @@
           yosys = callPackage ./nix/yosys.nix {};
           yosys-sby = callPackage ./nix/yosys-sby.nix {};
           yosys-eqy = callPackage ./nix/yosys-eqy.nix {};
-          yosys-f4pga-sdc = callPackage ./nix/yosys-f4pga-sdc.nix {};
           yosys-lighter = callPackage ./nix/yosys-lighter.nix {};
-          yosys-synlig-sv = callPackage ./nix/yosys-synlig-sv.nix {};
+          yosys-slang = callPackage ./nix/yosys-slang.nix {};
           yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {};
-          yosysFull = pkgs'.yosys.withPlugins (with pkgs';
-            [
-              yosys-sby
-              yosys-eqy
-              yosys-f4pga-sdc
-              yosys-lighter
-              yosys-synlig-sv
-            ]
-            ++ lib.optionals pkgs.stdenv.isx86_64 [yosys-ghdl]);
         })
+        (
+          self.composePythonOverlay (
+            pkgs': pkgs: pypkgs': pypkgs: let
+              callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            in {
+              pyosys = pypkgs'.toPythonModule (pkgs'.yosys.override {python3 = pypkgs'.python;}).python;
+              klayout = pypkgs'.toPythonModule (pkgs'.klayout.override {python3 = pypkgs'.python;}).python;
+            }
+          )
+        )
       ];
     };
 
@@ -134,17 +139,31 @@
     );
 
     # Outputs
+    formatter = self.forAllSystems (
+      system: self.legacyPackages."${system}".alejandra
+    );
+
     packages = self.forAllSystems (
-      system:
+      system: let
+        pkgs = self.legacyPackages."${system}";
+      in
         {
-          inherit (self.legacyPackages."${system}") magic magic-vlsi netgen klayout klayout-gdsfactory surelog tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-f4pga-sdc yosys-lighter yosys-synlig-sv yosysFull;
-          inherit (self.legacyPackages."${system}".python3.pkgs) gdsfactory gdstk tclint;
+          yosysFull = pkgs.yosys.withPlugins (with pkgs;
+            [
+              yosys-sby
+              yosys-eqy
+              yosys-lighter
+              yosys-slang
+            ]
+            ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]);
+          inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
+          inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
-          inherit (self.legacyPackages."${system}") xyce;
+          inherit (pkgs) xyce;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isx86_64 {
-          inherit (self.legacyPackages."${system}") yosys-ghdl;
+          inherit (pkgs) yosys-ghdl;
         }
     );
   };
