@@ -70,8 +70,13 @@ See [docs/flake_api.md](./docs/flake_api.md).
 
 ## ⚖️ License
 
-The Apache License, version 2.0. See 'License'. See [Authors.md](./Authors.md)
-for a list of authors and copyright holders.
+The combined work is available under the Apache License, version 2.0.
+See 'License'. See [Authors.md](./Authors.md) for a list of authors and
+copyright holders.
+
+We are eventually planning to relicense under the MIT License (to be compatible
+with nixpkgs upstream) and we kindly ask all new contributions to be under said
+license.
 
 Binary cache is hosted by the FOSSi Foundation.
 

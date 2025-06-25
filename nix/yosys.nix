@@ -69,114 +69,119 @@
   };
   yosys-python3-env = python3.withPackages (ps: with ps; [click setuptools wheel]);
   site-packages = yosys-python3-env.sitePackages;
-in let self = clangStdenv.mkDerivation (finalAttrs: {
-  pname = "yosys";
-  inherit version;
+in let
+  self = clangStdenv.mkDerivation (finalAttrs: {
+    pname = "yosys";
+    inherit version;
 
-  outputs = ["out" "python"];
+    outputs = ["out" "python"];
 
-  src = fetchurl {
-    url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys.tar.gz";
-    inherit sha256;
-  };
-
-  unpackPhase = ''
-    tar -xzvC . -f ${finalAttrs.src}
-  '';
-
-  nativeBuildInputs = [
-    pkg-config
-    bison
-    flex
-  ];
-
-  propagatedBuildInputs = [
-    tcl
-    libedit
-    libbsd
-    libffi
-    zlib
-    boost-python
-  ];
-
-  buildInputs = [
-    yosys-python3-env
-  ];
-
-  passthru = {
-    inherit python3;
-    python3-env = yosys-python3-env;
-    withPlugins = plugins: let
-      paths = lib.closePropagation plugins;
-      dylibs = lib.lists.flatten (map (n: n.dylibs) plugins);
-    in let
-      module_flags = with builtins;
-        concatStringsSep " "
-        (map (so: "--add-flags -m --add-flags ${so}") dylibs);
-    in (symlinkJoin {
-      pname = "${yosys.pname}-with-plugins";
-      version = yosys.version;
-      paths = paths ++ [yosys];
-      nativeBuildInputs = [makeWrapper];
-      postBuild = ''
-        cat <<SCRIPT > $out/bin/with_yosys_plugin_env
-        #!${bash}/bin/bash
-        export NIX_YOSYS_PLUGIN_DIRS='$out/share/yosys/plugins'
-        exec "\$@"
-        SCRIPT
-        chmod +x $out/bin/with_yosys_plugin_env
-        cp $out/bin/yosys $out/bin/yosys_with_plugins
-        wrapProgram $out/bin/yosys_with_plugins \
-          --set NIX_YOSYS_PLUGIN_DIRS $out/share/yosys/plugins \
-          ${module_flags}
-      '';
-      inherit (yosys) passthru;
-      meta = {
-        mainProgram = "yosys_with_plugins";
-      };
-    });
-    withPythonPackages = buildPythonEnvForInterpreter {
-      target = yosys;
-      inherit lib;
-      inherit buildEnv;
-      inherit makeBinaryWrapper;
+    src = fetchurl {
+      url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys.tar.gz";
+      inherit sha256;
     };
-  };
 
-  makeFlags = [
-    "PRETTY=0"
-    "PREFIX=${placeholder "out"}"
-    "ENABLE_READLINE=0"
-    "ENABLE_EDITLINE=1"
-    "ENABLE_YOSYS=1"
-    "ENABLE_PYOSYS=1"
-    "PYTHON_DESTDIR=${placeholder "python"}/${site-packages}"
-    "BOOST_PYTHON_LIB=${boost-python}/lib/libboost_${python3.pythonAttr}${clangStdenv.hostPlatform.extensions.sharedLibrary}"
-  ];
+    unpackPhase = ''
+      tar -xzvC . -f ${finalAttrs.src}
+    '';
 
-  patches = [
-    ./patches/yosys/plugin-search-dirs.patch
-  ];
+    nativeBuildInputs = [
+      pkg-config
+      bison
+      flex
+    ];
 
-  postPatch = ''
-    substituteInPlace ./Makefile \
-      --replace 'echo UNKNOWN' 'echo ${version}'
+    propagatedBuildInputs = [
+      tcl
+      libedit
+      libbsd
+      libffi
+      zlib
+      boost-python
+    ];
 
-    chmod +x ./misc/yosys-config.in
-    set -x
-  '';
+    buildInputs = [
+      yosys-python3-env
+    ];
 
-  postInstall = ''
-    python3 ./setup.py dist_info -o $python/${site-packages}
-  '';
+    passthru = {
+      inherit python3;
+      python3-env = yosys-python3-env;
+      withPlugins = plugins: let
+        paths = lib.closePropagation plugins;
+        dylibs = lib.lists.flatten (map (n: n.dylibs) plugins);
+      in let
+        module_flags = with builtins;
+          concatStringsSep " "
+          (map (so: "--add-flags -m --add-flags ${so}") dylibs);
+      in (symlinkJoin {
+        pname = "${yosys.pname}-with-plugins";
+        version = yosys.version;
+        paths = paths ++ [yosys];
+        nativeBuildInputs = [makeWrapper];
+        postBuild = ''
+          cat <<SCRIPT > $out/bin/with_yosys_plugin_env
+          #!${bash}/bin/bash
+          export NIX_YOSYS_PLUGIN_DIRS='$out/share/yosys/plugins'
+          exec "\$@"
+          SCRIPT
+          chmod +x $out/bin/with_yosys_plugin_env
+          cp $out/bin/yosys $out/bin/yosys_with_plugins
+          wrapProgram $out/bin/yosys \
+            --set NIX_YOSYS_PLUGIN_DIRS $out/share/yosys/plugins
+          wrapProgram $out/bin/yosys_with_plugins \
+            --set NIX_YOSYS_PLUGIN_DIRS $out/share/yosys/plugins \
+            ${module_flags}
+        '';
+        inherit (yosys) passthru;
+        meta = {
+          mainProgram = "yosys_with_plugins";
+        };
+      });
+      withPythonPackages = buildPythonEnvForInterpreter {
+        target = yosys;
+        inherit lib;
+        inherit buildEnv;
+        inherit makeBinaryWrapper;
+      };
+    };
 
-  doCheck = false;
-  enableParallelBuilding = true;
+    makeFlags = [
+      "PRETTY=0"
+      "PREFIX=${placeholder "out"}"
+      "ENABLE_READLINE=0"
+      "ENABLE_EDITLINE=1"
+      "ENABLE_YOSYS=1"
+      "ENABLE_PYOSYS=1"
+      "PYTHON_DESTDIR=${placeholder "python"}/${site-packages}"
+      "BOOST_PYTHON_LIB=${boost-python}/lib/libboost_${python3.pythonAttr}${clangStdenv.hostPlatform.extensions.sharedLibrary}"
+    ];
 
-  meta = with lib; {
-    description = "Yosys Open SYnthesis Suite";
-    license = with licenses; [mit];
-    homepage = "https://www.yosyshq.com/";
-    platforms = platforms.all;
-  };
-}); in self
+    patches = [
+      ./patches/yosys/plugin-search-dirs.patch
+    ];
+
+    postPatch = ''
+      substituteInPlace ./Makefile \
+        --replace 'echo UNKNOWN' 'echo ${version}'
+
+      chmod +x ./misc/yosys-config.in
+      set -x
+    '';
+
+    postInstall = ''
+      python3 ./setup.py dist_info -o $python/${site-packages}
+    '';
+
+    doCheck = false;
+    enableParallelBuilding = true;
+
+    meta = with lib; {
+      description = "Yosys Open SYnthesis Suite";
+      license = with licenses; [mit];
+      homepage = "https://www.yosyshq.com/";
+      platforms = platforms.all;
+    };
+  });
+in
+  self

@@ -139,6 +139,10 @@
     );
 
     # Outputs
+    formatter = self.forAllSystems (
+      system: self.legacyPackages."${system}".alejandra
+    );
+
     packages = self.forAllSystems (
       system: let
         pkgs = self.legacyPackages."${system}";
