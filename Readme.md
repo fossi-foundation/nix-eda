@@ -21,18 +21,27 @@ We compile and cache the tools for the following platforms:
 * [Netgen](http://opencircuitdesign.com/netgen)
 * [ngspice](https://ngspice.sourceforge.io)
 * [KLayout](https://klayout.de)
-    * (+ `.pymod` for Python module)
+    * (+ `.python3.pkgs.klayout` for Python module)
 * [GDSFactory](https://github.com/gdsfactory/gdsfactory)
     * (+ `klayout-gdsfactory` as a shorthand for an environment with both installed)
-* [Surelog](https://github.com/chipsalliance/Surelog)
 * [Verilator](https://verilator.org)
 * [Xschem](https://xschem.sourceforge.io/stefan/index.html)
 * [Xyce](https://github.com/xyce/xyce)
     * Linux only.
 * [Yosys](https://github.com/YosysHQ/yosys)
-    * (+ `.pyosys` for Python module)
+    * (+ `python3.pkgs.pyosys` for Python module)
     * (+ some plugins that can be accessed programmatically)
     * (`yosysFull` for all plugins)
+    
+> [!NOTE]  
+> As of the time of writing, if you're using KLayout andgdsfactory for sky130
+> PCells, the versions of klayout and gdsfactory in nix-eda 5.0.0+ are 
+> incompatible as the PCells are out-of-date.
+>
+> You can pull the latest working version, nix-eda 4.3.1, (based on NixOS 24.05) 
+> as follows:
+>
+> `nix shell github:fossi-foundation/nix-eda/4.3.1#klayout-gdsfactory`
 
 ## Installation
 
@@ -61,8 +70,13 @@ See [docs/flake_api.md](./docs/flake_api.md).
 
 ## ⚖️ License
 
-The Apache License, version 2.0. See 'License'. See [Authors.md](./Authors.md)
-for a list of authors and copyright holders.
+The combined work is available under the Apache License, version 2.0.
+See 'License'. See [Authors.md](./Authors.md) for a list of authors and
+copyright holders.
+
+We are eventually planning to relicense under the MIT License (to be compatible
+with nixpkgs upstream) and we kindly ask all new contributions to be under said
+license.
 
 Binary cache is hosted by the FOSSi Foundation.
 

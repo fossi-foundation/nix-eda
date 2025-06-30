@@ -19,61 +19,59 @@
   boolector,
   z3,
   yices,
-  version ? "0.46",
-  sha256 ? "sha256-Il2pXw2doaoZrVme2p0dSUUa8dCQtJJrmYitn1MkTD4=",
-}: let
-  py3env = python3.withPackages (ps:
-    with ps; [
-      click
-    ]);
-in
-  yosys.stdenv.mkDerivation (finalAttrs: {
-    pname = "yosys-sby";
-    inherit version;
-    dylibs = [];
+  version ? "0.54",
+  sha256 ? "sha256-onVeK23KgCodEoaUtfh3R0MraaXuoNuQ2BAX5k4RNis=",
+}:
+yosys.stdenv.mkDerivation (finalAttrs: {
+  pname = "yosys-sby";
+  inherit version;
+  dylibs = [];
 
-    src = fetchFromGitHub {
-      owner = "yosyshq";
-      repo = "sby";
-      rev = "yosys-${version}";
-      inherit sha256;
-    };
+  src = fetchFromGitHub {
+    owner = "yosyshq";
+    repo = "sby";
+    rev = "v${version}";
+    inherit sha256;
+  };
 
-    makeFlags = [
-      "YOSYS_CONFIG=${yosys}/bin/yosys-config"
-    ];
+  buildPhase = "";
 
-    buildInputs = [
-      yosys
+  makeFlags = [
+    "YOSYS_CONFIG=${yosys}/bin/yosys-config"
+    "PREFIX=${placeholder "out"}"
+  ];
 
-      py3env
-      # solvers
-      boolector
-      z3
-      yices
-    ];
+  buildInputs = [
+    yosys
 
-    preConfigure = ''
-      sed -i.bak "s@/usr/local@$out@" Makefile
-      sed -i.bak "s@#!/usr/bin/env python3@#!${py3env}/bin/python3@" sbysrc/sby.py
-      sed -i.bak "s@\"/usr/bin/env\", @@" sbysrc/sby_core.py
-    '';
+    yosys.python3-env
+    # solvers
+    boolector
+    z3
+    yices
+  ];
 
-    checkPhase = ''
-      make test
-    '';
+  patchPhase = ''
+    runHook prePatch
+    sed -i.bak "s@#!/usr/bin/env python3@#!${yosys.python3-env}/bin/python3@" sbysrc/sby.py
+    sed -i.bak "s@\"/usr/bin/env\", @@" sbysrc/sby_core.py
+    runHook postPatch
+  '';
 
-    doCheck = false;
+  doCheck = false; # it just takes forever man
+  checkPhase = ''
+    make test SBY_MAIN=$src/sbysrc/sby.py
+  '';
 
-    makeWrapperArgs = [
-      "--prefix PATH : ${lib.makeBinPath finalAttrs.buildInputs}"
-    ];
+  makeWrapperArgs = [
+    "--prefix PATH : ${lib.makeBinPath finalAttrs.buildInputs}"
+  ];
 
-    meta = with lib; {
-      description = "SymbiYosys (sby) -- Front-end for Yosys-based formal verification flows";
-      homepage = "https://github.com/YosysHQ/sby";
-      mainProgram = "sby";
-      license = licenses.mit;
-      platforms = platforms.linux ++ platforms.darwin;
-    };
-  })
+  meta = with lib; {
+    description = "SymbiYosys (sby) -- Front-end for Yosys-based formal verification flows";
+    homepage = "https://github.com/YosysHQ/sby";
+    mainProgram = "sby";
+    license = licenses.mit;
+    platforms = platforms.all;
+  };
+})
