@@ -39,18 +39,12 @@ jobs:
     runs-on: ${{ matrix.os.runner }}
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-        with:
-          # OpenLane cachix temporarily included until most things copied over
-          determinate: false
-          extra-conf: |
-            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-            extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
-            extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-      - name: Expose GitHub Token in nix-daemon env
-        uses: ./.github/actions/nix_daemon_inject_github_token
+      - name: Install Nix (+ add GitHub Token to Environment)
+        uses: ./.github/actions/install_nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - id: enumerate_packages
         name: Get all packages
         run: |
