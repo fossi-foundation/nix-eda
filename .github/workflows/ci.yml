@@ -43,6 +43,8 @@ jobs:
         uses: ./.github/actions/install_nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          nix_cache_domain: ${{ vars.NIX_CACHE }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
       - id: enumerate_packages
         name: Get all packages
         run: |
