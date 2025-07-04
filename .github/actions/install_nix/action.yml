@@ -1,0 +1,26 @@
+name: "nix-daemon: Inject GitHub Token"
+description: |
+  Injects the GitHub Token into either the systemd service or launchctl daemon
+  for the Nix daemon.
+inputs:
+  github_token:
+    description: "Optional GitHub Token to add to the Nix environment (to help avoid rate-limiting fetchers). It's heavily recommended to just use secrets.GITHUB_TOKEN in case a badly-written fetcher captures the environment somewhere (secrets.GITHUB_TOKEN is ephemeral.)"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: Install Upstream Nix
+      uses: DeterminateSystems/nix-installer-action@main
+      with:
+        # OpenLane cachix temporarily included until most things copied over
+        determinate: false
+        extra-conf: |
+          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+          extra-substituters = https://${{ vars.NIX_CACHE }} https://openlane.cachix.org
+          extra-trusted-public-keys = ${{ vars.NIX_PUBLIC_KEY }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
+    - name: Inject GitHub Token into Daemon Environment
+      uses: ${{ github.action_path }}/../nix_daemon_inject_github_token
+      if: inputs.github_token != ""
+      with:
+        github_token: ${{ inputs.github_token }}

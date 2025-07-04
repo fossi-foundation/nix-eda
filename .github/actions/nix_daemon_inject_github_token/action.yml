@@ -3,10 +3,6 @@ description: |
   Injects the GitHub Token into either the systemd service or launchctl daemon
   for the Nix daemon.
 inputs:
-  shell:
-    description: "Shell to use"
-    required: true
-    default: "bash"
   github_token:
     description: "The GitHub token to use. It's heavily recommended to just use secrets.GITHUB_TOKEN in case a badly-written fetcher captures the environment somewhere (secrets.GITHUB_TOKEN is ephemeral.)"
     required: true
