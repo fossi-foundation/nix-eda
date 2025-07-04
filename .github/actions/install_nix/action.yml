@@ -27,8 +27,25 @@ runs:
           access-tokens = github.com=${{ inputs.github_token }}
           extra-substituters = https://${{ inputs.nix_cache_domain }} https://openlane.cachix.org
           extra-trusted-public-keys = ${{ inputs.nix_public_key }} openlane.cachix.org-1:qqdwh+QMNGmZAuyeQJTH9ErW57OWSvdtuwfBKdS254E=
-    - name: Inject GitHub Token into Daemon Environment
-      uses: ./../nix_daemon_inject_github_token
-      if: inputs.github_token != ''
-      with:
-        github_token: ${{ inputs.github_token }}
+    - name: Linux -- inject GITHUB_TOKEN environment variable into nix-daemon.service
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        if command -v systemctl > /dev/null; then
+          systemctl list-units | grep nix-daemon
+          if ! command -v crudini > /dev/null; then
+            sudo apt-get install -y crudini
+          fi
+          sudo crudini --set /etc/systemd/system/nix-daemon.service Service Environment '"GITHUB_TOKEN=${{ inputs.github_token }}"'
+          sudo systemctl daemon-reload
+          sudo systemctl restart --now nix-daemon.service
+        else
+          echo "Not systemd. Can't do much."
+        fi
+    - name: macOS - inject GITHUB_TOKEN environment into org.nixos.nix-daemon.plist
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        sudo /usr/libexec/PlistBuddy -c "Add :EnvironmentVariables:GITHUB_TOKEN string ${{ inputs.github_token }}" /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+        sudo launchctl bootout system/org.nixos.nix-daemon
+        sudo launchctl load -w /Library/LaunchDaemons/org.nixos.nix-daemon.plist
