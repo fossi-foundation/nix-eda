@@ -60,7 +60,7 @@
         )
         (
           self.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
-            callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
           in {
             kfactory = pypkgs.kfactory.overrideAttrs (attrs': attrs: {
               version = "1.9.3";
