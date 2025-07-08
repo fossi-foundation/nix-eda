@@ -48,7 +48,7 @@ jobs:
       - id: enumerate_packages
         name: Get all packages
         run: |
-          echo "FLAKE_OUTPUTS=$(python3 ./.github/workflows/get_all_packages.py)" >> $GITHUB_ENV
+          echo "FLAKE_OUTPUTS=$(python3 ./.github/workflows/get_all_packages.py | tr '\n' ' ')" >> $GITHUB_ENV
       - name: Build All
         run: |
           set +e

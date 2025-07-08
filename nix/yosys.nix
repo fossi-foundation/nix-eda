@@ -57,6 +57,7 @@
   bash,
   version ? "0.54",
   sha256 ? "sha256-meKlZh6ZiiPHwQCvS7Y667lvE9XWgIaual8c6SDpeDw=",
+  darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
   buildEnv,
@@ -89,7 +90,7 @@ in let
       pkg-config
       bison
       flex
-    ];
+    ] ++ lib.optionals clangStdenv.isDarwin [darwin.autoSignDarwinBinariesHook];
 
     propagatedBuildInputs = [
       tcl
