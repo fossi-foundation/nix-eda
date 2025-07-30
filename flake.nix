@@ -104,6 +104,7 @@
           klayout = callPackage ./nix/klayout.nix {};
           klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
           #
+          iverilog = callPackage ./nix/iverilog.nix {};
           klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix {};
           tclFull = callPackage ./nix/tclFull.nix {};
           tk-x11 = callPackage ./nix/tk-x11.nix {};
