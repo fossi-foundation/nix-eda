@@ -62,6 +62,7 @@
           self.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
             callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
           in {
+            cocotb = callPythonPackage ./nix/cocotb.nix {};
             kfactory = pypkgs.kfactory.overrideAttrs (attrs': attrs: {
               version = "1.9.3";
               src = pypkgs'.fetchPypi {
@@ -157,11 +158,12 @@
               yosys-slang
             ]
             ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]);
-          inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory tclFull tk-x11 verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
+          inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory tclFull tk-x11 iverilog verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
           inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
           inherit (pkgs) xyce;
+          inherit (pkgs.python3.pkgs) cocotb;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isx86_64 {
           inherit (pkgs) yosys-ghdl;
