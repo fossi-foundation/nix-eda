@@ -26,6 +26,8 @@ We compile and cache the tools for the following platforms:
     * (+ `klayout-gdsfactory` as a shorthand for an environment with both installed)
 * [Verilator](https://verilator.org)
 * [Icarus Verilog](https://github.com/steveicarus/iverilog)
+* [cocotb](https://www.cocotb.org/)
+    * Linux only.
 * [Xschem](https://xschem.sourceforge.io/stefan/index.html)
 * [Xyce](https://github.com/xyce/xyce)
     * Linux only.
