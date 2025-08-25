@@ -49,9 +49,8 @@
   # Metadata
   version ? "1.9.2",
   sha256 ? "sha256-7KCo7g2I1rfm8QDHRm3ZKloHwjDIICnJCF8KhaFdvqY=",
-}:
-let
-  self = buildPythonPackage rec {
+}: let
+  self = buildPythonPackage {
     pname = "cocotb";
     inherit version;
     format = "setuptools";
@@ -64,33 +63,35 @@ let
       inherit sha256;
     };
 
-    buildInputs = [ setuptools ];
-    propagatedBuildInputs = [ find-libpython ];
+    buildInputs = [setuptools];
+    propagatedBuildInputs = [find-libpython];
 
     postPatch = ''
       patchShebangs bin/*.py
     '';
 
-    disabledTests = [
-      # https://github.com/cocotb/cocotb/commit/425e1edb8e7133f4a891f2f87552aa2748cd8d2c#diff-4df986cbc2b1a3f22172caea94f959d8fcb4a128105979e6e99c68139469960cL33
-      "test_cocotb"
-      "test_cocotb_parallel"
-    ];
+    disabledTests =
+      [
+        "test_cocotb_parallel"
+        "test_cocotb"
+      ]
+      ++ (lib.lists.optionals (!stdenv.isLinux) ["test_vhdl"]);
 
-    nativeCheckInputs = [
-      cocotb-bus
-      pytestCheckHook
-      swig
-      iverilog
-      ghdl
-    ];
+    nativeCheckInputs =
+      [
+        cocotb-bus
+        pytestCheckHook
+        swig
+        iverilog
+      ]
+      ++ (lib.lists.optionals stdenv.isLinux [ghdl]);
 
     preCheck = ''
       export PATH=$out/bin:$PATH
       mv cocotb cocotb.hidden
     '';
 
-    pythonImportsCheck = [ "cocotb" ];
+    pythonImportsCheck = ["cocotb"];
 
     meta = {
       changelog = "https://github.com/cocotb/cocotb/releases/tag/v${version}";
@@ -98,8 +99,8 @@ let
       mainProgram = "cocotb-config";
       homepage = "https://github.com/cocotb/cocotb";
       license = lib.licenses.bsd3;
-      broken = stdenv.hostPlatform.isDarwin;
+      platforms = lib.platforms.linux ++ lib.platforms.darwin;
     };
   };
 in
-self
+  self

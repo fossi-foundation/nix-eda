@@ -53,8 +53,7 @@
   rev ? "db82380cecf9943fcc397818e6899b7146442127",
   sha256 ? "sha256-0WA/SrHINtwv0UKX7Jjb8sjnXBfRIBoErK+MrdBwErg=",
 }:
-
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "iverilog";
   inherit version;
 
@@ -63,7 +62,7 @@ stdenv.mkDerivation rec {
     repo = "iverilog";
     rev =
       if rev == null
-      then "v${lib.replaceStrings [ "." ] [ "_" ] version}"
+      then "v${lib.replaceStrings ["."] ["_"] version}"
       else rev;
     inherit sha256;
   };
@@ -107,9 +106,10 @@ stdenv.mkDerivation rec {
   nativeInstallCheckInputs = [
     perl
     (python3.withPackages (
-      pp: with pp; [
-        docopt
-      ]
+      pp:
+        with pp; [
+          docopt
+        ]
     ))
   ];
 
@@ -127,7 +127,6 @@ stdenv.mkDerivation rec {
       gpl2Plus
       lgpl21Plus
     ];
-    maintainers = with maintainers; [ thoughtpolice ];
     platforms = platforms.all;
   };
 }

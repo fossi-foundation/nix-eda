@@ -55,8 +55,7 @@
   rev ? null,
   sha256 ? "sha256-uPGVE7y3zm+5ZydGjd1+/kIjW+a5u6d+YzjUSE4KnCY=",
 }:
-
-stdenv.mkDerivation rec {
+stdenv.mkDerivation {
   pname = "verilator";
   inherit version;
 
@@ -79,33 +78,36 @@ stdenv.mkDerivation rec {
     perl
     systemc
     (python3.withPackages (
-      pp: with pp; [
-        distro
-      ]
+      pp:
+        with pp; [
+          distro
+        ]
     ))
     # ccache
   ];
-  nativeBuildInputs = [
-    makeWrapper
-    flex
-    bison
-    autoconf
-    help2man
-    git
-  ]
-  ++ lib.optionals stdenv.hostPlatform.isLinux [
-    gdb
-  ];
+  nativeBuildInputs =
+    [
+      makeWrapper
+      flex
+      bison
+      autoconf
+      help2man
+      git
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [
+      gdb
+    ];
 
-  nativeCheckInputs = [
-    which
-    coreutils
-    # cmake
-    python3
-  ]
-  ++ lib.optionals stdenv.hostPlatform.isLinux [
-    numactl
-  ];
+  nativeCheckInputs =
+    [
+      which
+      coreutils
+      # cmake
+      python3
+    ]
+    ++ lib.optionals stdenv.hostPlatform.isLinux [
+      numactl
+    ];
 
   doCheck = true;
   checkTarget = "test";
