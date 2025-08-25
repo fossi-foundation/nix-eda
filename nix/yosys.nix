@@ -86,11 +86,13 @@ in let
       tar -xzvC . -f ${finalAttrs.src}
     '';
 
-    nativeBuildInputs = [
-      pkg-config
-      bison
-      flex
-    ] ++ lib.optionals clangStdenv.isDarwin [darwin.autoSignDarwinBinariesHook];
+    nativeBuildInputs =
+      [
+        pkg-config
+        bison
+        flex
+      ]
+      ++ lib.optionals clangStdenv.isDarwin [darwin.autoSignDarwinBinariesHook];
 
     propagatedBuildInputs = [
       tcl
