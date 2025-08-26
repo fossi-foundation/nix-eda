@@ -48,7 +48,7 @@ creation of dependent Flakes, ranked by importance:
   
   ```nix
   self.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
-    callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+    callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
   in {
     gdsfactory = callPythonPackage ./nix/gdsfactory.nix {};
   })

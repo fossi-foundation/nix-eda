@@ -82,10 +82,11 @@ You can do that by adding these statements to your OS's derivation:
 ```nix
 {
   nix = {
-    extraOptions = ''
-      extra-experimental-features = nix-command flakes
-    '';
     settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
       substituters = [
         "https://nix-cache.fossi-foundation.org"
       ];
