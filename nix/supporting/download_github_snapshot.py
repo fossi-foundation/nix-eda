@@ -2,10 +2,10 @@
 # Adapted from OpenLane Build Scripts
 #
 # https://github.com/The-OpenROAD-Project/OpenLane/blob/3c41826a8aaaf724e423593ddc7bea392e65277e/docker/utils.py
-# 
+#
 # and Volare
 #
-# 
+#
 #
 # Copyright 2021 Efabless Corporation
 #
@@ -41,7 +41,8 @@ except ImportError:
         file=sys.stderr,
     )
     exit(-1)
-    
+
+
 class GitHubSession(httpx.Client):
     def __init__(
         self,
@@ -88,9 +89,11 @@ class GitHubSession(httpx.Client):
     @classmethod
     def get_user_agent(Self) -> str:
         return f"nix-eda"
-    
+
+
 github_client = GitHubSession()
 download_cache = {}
+
 
 def download_tarball(repo_url: str, commit: str) -> str:
     repo_path = urllib.parse.urlsplit(repo_url).path.strip("/")
@@ -237,13 +240,16 @@ def main(repo_url, commit, out_dir, filter):
     """
     Downloads a snapshot of a GitHub repo, i.e. with all GitHub-based submodules
     recursively downloaded.
-    
+
     Currently does not work for repositories with private or externally hosted
     submodules.
     """
     global github_client
     fetch_tarball_and_submodules(
-        repo_url=repo_url, commit=commit, base_path=out_dir, filter=filter,
+        repo_url=repo_url,
+        commit=commit,
+        base_path=out_dir,
+        filter=filter,
     )
 
 
