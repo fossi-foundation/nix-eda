@@ -38,53 +38,54 @@
   yosys,
   fetchFromGitHub,
   python3,
-  ghdl-mcode,
-  ghdl-llvm,
+  ghdl,
   pkg-config,
   rev ? "c9b05e481423c55ffcbb856fd5296701f670808c",
   rev-date ? "2022-01-11",
   sha256 ? "sha256-tT2+DXUtbJIBzBUBcyG2sz+3G+dTkciLVIczcRPr0Jw=",
-}: let
-  ghdl =
-    if yosys.stdenv.isLinux
-    then ghdl-mcode
-    else ghdl-llvm;
-in
-  yosys.stdenv.mkDerivation {
-    pname = "yosys-ghdl";
-    version = rev-date;
+}:
+yosys.stdenv.mkDerivation {
+  pname = "yosys-ghdl";
+  version = rev-date;
 
-    dylibs = ["ghdl"];
+  dylibs = ["ghdl"];
 
-    src = fetchFromGitHub {
-      owner = "ghdl";
-      repo = "ghdl-yosys-plugin";
-      inherit rev;
-      inherit sha256;
-    };
+  src = fetchFromGitHub {
+    owner = "ghdl";
+    repo = "ghdl-yosys-plugin";
+    inherit rev;
+    inherit sha256;
+  };
 
-    buildInputs = [
-      yosys
-      python3
-      ghdl
-    ];
+  buildInputs = [
+    yosys
+    python3
+    ghdl
+  ];
 
-    nativeBuildInputs = [
-      pkg-config
-    ];
+  nativeBuildInputs = [
+    pkg-config
+  ];
 
-    doCheck = false;
+  installPhase = ''
+    runHook preInstall
+    mkdir -p $out/share/yosys/plugins
+    cp ghdl.so $out/share/yosys/plugins/ghdl.so
+    runHook postInstall
+  '';
 
-    installPhase = ''
-      mkdir -p $out/share/yosys/plugins
-      cp ghdl.so $out/share/yosys/plugins/ghdl.so
-    '';
+  doCheck = true;
 
-    meta = {
-      description = "VHDL synthesis (based on GHDL and Yosys)";
-      homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
-      license = lib.licenses.gpl3Plus;
-      # inherit (ghdl.meta) platforms; # lists non-functioning platforms
-      platforms = ["x86_64-linux" "x86_64-darwin"];
-    };
-  }
+  checkPhase = ''
+    runHook preCheck
+    yosys -p "plugin -i $PWD/ghdl.so; ghdl testsuite/examples/dff/dff.vhdl -e dff; hierarchy"
+    runHook postcheck
+  '';
+
+  meta = {
+    description = "VHDL synthesis (based on GHDL and Yosys)";
+    homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
+    license = lib.licenses.gpl3Plus;
+    inherit (ghdl.meta) platforms;
+  };
+}

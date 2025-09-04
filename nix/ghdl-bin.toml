@@ -1,0 +1,11 @@
+version = "5.0.1"
+
+[x86_64-darwin]
+backend = "llvm"
+platform_double = "macos13-x86_64"
+sha256 = "sha256-F29YhXysqAOSFfnq08krXOBVigQ0FSlXyishnVuWZEM="
+
+[aarch64-darwin]
+backend = "llvm"
+platform_double = "macos14-aarch64"
+sha256 = "sha256-R+nLj50zBumolpcbKgrO8Td25bmNcXRaLmHVcy1eyWQ="

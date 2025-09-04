@@ -97,6 +97,10 @@
             doCheck = pkgs.system != "x86_64-darwin";
           });
 
+          ## ghdl
+          ghdl-llvm = pkgs.ghdl-llvm.override {gnat = pkgs'.gnat14;};
+          ghdl-bin = callPackage ./nix/ghdl-bin.nix {};
+
           # Main
           magic = callPackage ./nix/magic.nix {};
           magic-vlsi = pkgs'.magic; # alias, there's a python package called magic
@@ -117,7 +121,12 @@
           yosys-eqy = callPackage ./nix/yosys-eqy.nix {};
           yosys-lighter = callPackage ./nix/yosys-lighter.nix {};
           yosys-slang = callPackage ./nix/yosys-slang.nix {};
-          yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {};
+          yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
+            ghdl =
+              if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms)
+              then pkgs'.ghdl-bin
+              else pkgs'.ghdl-llvm;
+          };
         })
         (
           self.composePythonOverlay (
@@ -150,14 +159,13 @@
         pkgs = self.legacyPackages."${system}";
       in
         {
-          yosysFull = pkgs.yosys.withPlugins (with pkgs;
-            [
-              yosys-sby
-              yosys-eqy
-              yosys-lighter
-              yosys-slang
-            ]
-            ++ lib.optionals (lib.lists.any (el: el == system) yosys-ghdl.meta.platforms) [yosys-ghdl]);
+          yosysFull = pkgs.yosys.withPlugins (with pkgs; [
+            yosys-sby
+            yosys-eqy
+            yosys-lighter
+            yosys-slang
+            yosys-ghdl
+          ]);
           inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory tclFull tk-x11 iverilog verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
           inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
         }
