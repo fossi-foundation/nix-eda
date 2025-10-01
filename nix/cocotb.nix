@@ -1,5 +1,9 @@
 # Copyright (c) 2025 nix-eda Contributors
 #
+# Adapted from nixpkgs
+#
+# Copyright (c) 2003-2025 Eelco Dolstra and the Nixpkgs/NixOS contributors
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -30,10 +34,10 @@
   swig,
   iverilog,
   ghdl,
-  stdenv,
+  zlib,
   # Metadata
-  version ? "1.9.2",
-  sha256 ? "sha256-7KCo7g2I1rfm8QDHRm3ZKloHwjDIICnJCF8KhaFdvqY=",
+  version ? "2.0.0",
+  sha256 ? "sha256-BpshczKA83ZeytGDrHEg6IAbI5FxciAUnzwE10hgPC0=",
 }: let
   self = buildPythonPackage {
     pname = "cocotb";
@@ -48,33 +52,20 @@
       inherit sha256;
     };
 
-    buildInputs = [setuptools];
+    buildInputs = [setuptools zlib];
     propagatedBuildInputs = [find-libpython];
 
     postPatch = ''
       patchShebangs bin/*.py
     '';
 
-    disabledTests =
-      [
-        "test_cocotb_parallel"
-        "test_cocotb"
-      ]
-      ++ (lib.lists.optionals (!stdenv.isLinux) ["test_vhdl"]);
-
-    nativeCheckInputs =
-      [
-        cocotb-bus
-        pytestCheckHook
-        swig
-        iverilog
-      ]
-      ++ (lib.lists.optionals stdenv.isLinux [ghdl]);
-
-    preCheck = ''
-      export PATH=$out/bin:$PATH
-      mv cocotb cocotb.hidden
-    '';
+    nativeCheckInputs = [
+      cocotb-bus
+      pytestCheckHook
+      swig
+      iverilog
+      ghdl
+    ];
 
     pythonImportsCheck = ["cocotb"];
 
