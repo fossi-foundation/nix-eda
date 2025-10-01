@@ -62,7 +62,12 @@
           self.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
             callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
           in {
-            cocotb = callPythonPackage ./nix/cocotb.nix {};
+            cocotb = callPythonPackage ./nix/cocotb.nix {
+              ghdl =
+                if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms)
+                then pkgs'.ghdl-bin
+                else pkgs'.ghdl-llvm;
+            };
             kfactory = pypkgs.kfactory.overrideAttrs (attrs': attrs: {
               version = "1.9.3";
               src = pypkgs'.fetchPypi {
