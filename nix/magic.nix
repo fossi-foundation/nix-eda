@@ -45,9 +45,9 @@
   cairo,
   python3,
   gnused,
-  version ? "8.3.568",
+  version ? "8.3.570",
   rev ? null,
-  sha256 ? "sha256-ae5vsyi17ClAO9e5/WzgCUDaU3tRvww70s+/SkEjHHs=",
+  sha256 ? "sha256-leb++FURKjf+cv4T4Y6NZx0MxKjOMcks10V3A0sODbI=",
 }:
 clangStdenv.mkDerivation {
   pname = "magic-vlsi";
@@ -81,10 +81,6 @@ clangStdenv.mkDerivation {
   ];
 
   NIX_CFLAGS_COMPILE = "-Wno-implicit-function-declaration -Wno-parentheses -Wno-macro-redefined";
-
-  postPatch = ''
-    sed -i "s/dbReadOpen(cellDef, name,/dbReadOpen(cellDef, name != NULL,/" database/DBio.c
-  '';
 
   preConfigure = ''
     # nix shebang fix
