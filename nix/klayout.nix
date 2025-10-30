@@ -1,22 +1,6 @@
-# Copyright 2025 nix-eda Contributors
-#
-# Adapted from efabless/nix-eda
-#
-# Copyright 2023 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# Code adapated from Nixpkgs, original license follows:
-# ---
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 fossi-foundation/nix-eda contributors
+# Copyright (c) 2023 UmbraLogic Technologies LLC
 # Copyright (c) 2003-2023 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -63,7 +47,10 @@ clangStdenv.mkDerivation {
   pname = "klayout";
   inherit version;
 
-  outputs = ["out" "python"];
+  outputs = [
+    "out"
+    "python"
+  ];
 
   src = fetchurl {
     url = "https://github.com/KLayout/klayout/archive/refs/tags/v${version}.tar.gz";
@@ -82,7 +69,7 @@ clangStdenv.mkDerivation {
   nativeBuildInputs = [
     which
     perl
-    (python3.withPackages (ps: with ps; [setuptools]))
+    (python3.withPackages (ps: with ps; [ setuptools ]))
     ruby
     gnused
     libsForQt5.wrapQtAppsHook
@@ -138,13 +125,14 @@ clangStdenv.mkDerivation {
       ln -s $out/lib/pymod/klayout*.dist-info $python/${python3.sitePackages}/
     ''
     + (
-      if clangStdenv.isDarwin
-      then ''
-        cp $out/lib/klayout.app/Contents/MacOS/klayout $out/bin/
-      ''
-      else ''
-        cp $out/lib/klayout $out/bin/
-      ''
+      if clangStdenv.isDarwin then
+        ''
+          cp $out/lib/klayout.app/Contents/MacOS/klayout $out/bin/
+        ''
+      else
+        ''
+          cp $out/lib/klayout $out/bin/
+        ''
     );
 
   # The automatic Qt wrapper overrides makeWrapperArgs
@@ -165,7 +153,7 @@ clangStdenv.mkDerivation {
 
   meta = with lib; {
     description = "High performance layout viewer and editor with support for GDS and OASIS";
-    license = with licenses; [gpl3Plus];
+    license = with licenses; [ gpl3Plus ];
     homepage = "https://www.klayout.de/";
     changelog = "https://www.klayout.de/development.html#${version}";
     platforms = platforms.linux ++ platforms.darwin;

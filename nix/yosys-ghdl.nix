@@ -1,20 +1,6 @@
-# Copyright 2023 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Code adapated from Nixpkgs, original license follows:
-# ---
-# Copyright (c) 2003-2023 Eelco Dolstra and the Nixpkgs/NixOS contributors
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 fossi-foundation/nix-eda contributors
+# Copyright (c) 2023 UmbraLogic Technologies LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -48,7 +34,7 @@ yosys.stdenv.mkDerivation {
   pname = "yosys-ghdl";
   version = rev-date;
 
-  dylibs = ["ghdl"];
+  dylibs = [ "ghdl" ];
 
   src = fetchFromGitHub {
     owner = "ghdl";

@@ -1,18 +1,6 @@
-# Copyright 2024 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# Code adapated from Nixpkgs, original license follows:
-# ---
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 fossi-foundation/nix-eda contributors
+# Copyright (c) 2024 UmbraLogic Technologies LLC
 # Copyright (c) 2003-2023 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -25,6 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -33,36 +22,40 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 lib:
-lib.makeOverridable ({
-  target,
-  lib,
-  buildEnv,
-  makeBinaryWrapper,
-  # extra opts
-  extraOutputsToInstall ? [],
-  postBuild ? "",
-  ignoreCollisions ? false,
-  permitUserSite ? false,
-  # Wrap executables with the given argument.
-  makeWrapperArgs ? [],
-}: pkglist: let
-  extraLibs = pkglist target.python3.pkgs;
-in
+lib.makeOverridable (
+  {
+    target,
+    lib,
+    buildEnv,
+    makeBinaryWrapper,
+    # extra opts
+    extraOutputsToInstall ? [ ],
+    postBuild ? "",
+    ignoreCollisions ? false,
+    permitUserSite ? false,
+    # Wrap executables with the given argument.
+    makeWrapperArgs ? [ ],
+  }:
+  pkglist:
+  let
+    extraLibs = pkglist target.python3.pkgs;
+  in
   # Create an executable of something that embeds Python with additional
   # packages in its specific Python environment.
   let
-    env = let
-      python3 = target.python3;
-      paths = (python3.pkgs.requiredPythonModules (extraLibs ++ [python3])) ++ [target];
-    in
+    env =
+      let
+        python3 = target.python3;
+        paths = (python3.pkgs.requiredPythonModules (extraLibs ++ [ python3 ])) ++ [ target ];
+      in
       buildEnv {
         name = "${target.name}-${python3.name}-env";
 
         inherit paths;
         inherit ignoreCollisions;
-        extraOutputsToInstall = ["out"] ++ extraOutputsToInstall;
+        extraOutputsToInstall = [ "out" ] ++ extraOutputsToInstall;
 
-        nativeBuildInputs = [makeBinaryWrapper];
+        nativeBuildInputs = [ makeBinaryWrapper ];
 
         postBuild =
           ''
@@ -98,25 +91,31 @@ in
             mainProgram = target.meta.mainProgram or target.pname or target.name;
             description = "Python environment for ${target.name}";
           }
-          // lib.attrsets.filterAttrs (k: v: builtins.elem k ["license" "platforms" "broken"]) target.meta;
+          // lib.attrsets.filterAttrs (
+            k: v:
+            builtins.elem k [
+              "license"
+              "platforms"
+              "broken"
+            ]
+          ) target.meta;
 
-        passthru =
-          python3.passthru
-          // {
-            interpreter = "${env}/bin/${python3.executable}";
-            inherit python3;
-            env = target.stdenv.mkDerivation {
-              name = "interactive-${target.name}-${python3.name}-environment";
-              nativeBuildInputs = [env];
+        passthru = python3.passthru // {
+          interpreter = "${env}/bin/${python3.executable}";
+          inherit python3;
+          env = target.stdenv.mkDerivation {
+            name = "interactive-${target.name}-${python3.name}-environment";
+            nativeBuildInputs = [ env ];
 
-              buildCommand = ''
-                echo >&2 ""
-                echo >&2 "*** Python 'env' attributes are intended for interactive nix-shell sessions, not for building! ***"
-                echo >&2 ""
-                exit 1
-              '';
-            };
+            buildCommand = ''
+              echo >&2 ""
+              echo >&2 "*** Python 'env' attributes are intended for interactive nix-shell sessions, not for building! ***"
+              echo >&2 ""
+              exit 1
+            '';
           };
+        };
       };
   in
-    env)
+  env
+)

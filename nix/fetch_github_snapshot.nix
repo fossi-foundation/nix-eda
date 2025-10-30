@@ -1,19 +1,5 @@
-# Copyright 2025 nix-eda Contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# Code adapated from Nixpkgs, original license follows:
-# ---
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 fossi-foundation/nix-eda contributors
 # Copyright (c) 2003-2023 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -38,7 +24,8 @@
   stdenvNoCC,
   python3,
   preferLocalBuild ? true,
-}: {
+}:
+{
   owner,
   repo,
   rev,
@@ -47,25 +34,26 @@
 stdenvNoCC.mkDerivation {
   name = "github-${repo}-${rev}-snapshot";
   nativeBuildInputs = [
-    (python3.withPackages (ps: with ps; [click httpx truststore]))
+    (python3.withPackages (
+      ps: with ps; [
+        click
+        httpx
+        truststore
+      ]
+    ))
   ];
-  phases = ["installPhase"];
+  phases = [ "installPhase" ];
   installPhase = ''
     python3 ${./supporting/download_github_snapshot.py} \
       --out-dir $out \
       https://github.com/${owner}/${repo} \
       ${rev}
   '';
-  impureEnvVars =
-    lib.fetchers.proxyImpureEnvVars
-    ++ [
-      "GITHUB_TOKEN"
-    ];
+  impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ [
+    "GITHUB_TOKEN"
+  ];
   outputHash = hash;
-  outputHashAlgo =
-    if hash == ""
-    then "sha256"
-    else null;
+  outputHashAlgo = if hash == "" then "sha256" else null;
   outputHashMode = "recursive";
   inherit preferLocalBuild;
 }

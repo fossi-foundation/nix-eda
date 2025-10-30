@@ -1,18 +1,6 @@
-# Copyright 2023 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# Code adapated from Nixpkgs, original license follows:
-# ---
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 fossi-foundation/nix-eda contributors
+# Copyright (c) 2023 UmbraLogic Technologies LLC
 # Copyright (c) 2003-2023 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -25,6 +13,7 @@
 #
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -66,40 +55,41 @@ stdenv.mkDerivation (self: {
     inherit sha256;
   };
 
-  nativeBuildInputs = [cmake pkg-config];
-  buildInputs =
-    [
-      cadical
-      cryptominisat
-      picosat
-      minisat
-      btor2tools
-      symfpu
-      gmp
-      zlib
-    ]
-    ++ lib.optional withLingeling lingeling;
+  nativeBuildInputs = [
+    cmake
+    pkg-config
+  ];
+  buildInputs = [
+    cadical
+    cryptominisat
+    picosat
+    minisat
+    btor2tools
+    symfpu
+    gmp
+    zlib
+  ] ++ lib.optional withLingeling lingeling;
 
-  cmakeFlags =
-    [
-      "-DBUILD_SHARED_LIBS=ON"
-      "-DPicoSAT_INCLUDE_DIR=${lib.getDev picosat}/include/picosat"
-      "-DBtor2Tools_INCLUDE_DIR=${lib.getDev btor2tools}/include/btor2parser"
-      "-DBtor2Tools_LIBRARIES=${lib.getLib btor2tools}/lib/libbtor2parser${stdenv.hostPlatform.extensions.sharedLibrary}"
-    ]
-    ++ lib.optional self.doCheck "-DTESTING=YES";
+  cmakeFlags = [
+    "-DBUILD_SHARED_LIBS=ON"
+    "-DPicoSAT_INCLUDE_DIR=${lib.getDev picosat}/include/picosat"
+    "-DBtor2Tools_INCLUDE_DIR=${lib.getDev btor2tools}/include/btor2parser"
+    "-DBtor2Tools_LIBRARIES=${lib.getLib btor2tools}/lib/libbtor2parser${stdenv.hostPlatform.extensions.sharedLibrary}"
+  ] ++ lib.optional self.doCheck "-DTESTING=YES";
 
-  checkInputs = [python3 gtest];
+  checkInputs = [
+    python3
+    gtest
+  ];
   doCheck = false; # they take freaking forever
-  preCheck = let
-    var =
-      if stdenv.isDarwin
-      then "DYLD_LIBRARY_PATH"
-      else "LD_LIBRARY_PATH";
-  in ''
-    export ${var}=$(readlink -f lib)
-    patchShebangs ..
-  '';
+  preCheck =
+    let
+      var = if stdenv.isDarwin then "DYLD_LIBRARY_PATH" else "LD_LIBRARY_PATH";
+    in
+    ''
+      export ${var}=$(readlink -f lib)
+      patchShebangs ..
+    '';
 
   meta = {
     description = "A SMT solver for fixed-size bit-vectors, floating-point arithmetic, arrays, and uninterpreted functions";
