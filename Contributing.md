@@ -7,10 +7,9 @@ Please build tools on at least x86_64-linux before submitting them.
 
 The CI will attempt to build them for the other three platforms: x86_64-darwin,
 aarch64-linux and aarch64-darwin, but if you have the capacity to test those
-builds yourselves, it will greatly speed up the PR
-process.
+builds yourselves, it will greatly speed up the PR process.
 
-Nix code must be formatted using `alejandra`: `nix fmt .`
+Nix code must be formatted using `nixfmt-tree`: just run `nix fmt .`
 
 ## Submissions
 Make your changes and then submit them as a pull requests to the `main` branch.
@@ -20,10 +19,16 @@ more information on using pull requests.
 
 ## Licensing and Copyright
 
-Please add your name and email (and/or employer) to [Authors.md](./Authors.md).
+Please note all code contributions must have the same license as nix-eda, i.e.,
+the standard MIT license as published by the Open-Source Initiative (OSI.)
 
-We request that your changes be under the ISC/MIT License. 
+You, as the submitter of the patch, are responsible for your patch, regardless\
+of where that change came from; whether you:
 
-We intend to eventually, when all Efabless Code is rewritten, relicense this
-project under the ISC/MIT License in the hopes of upstreaming at least some of
-these derivations to nixpkgs proper.
+1. Wrote it yourself and are willing to release your changes under said license.
+2. Acquired it from other libre software with compatible license terms
+   (and of course the requisite copyright notices.)
+3. Created using coding assistants, "Generative AI" software, or similar tools.
+
+For significant changes, please add either your or your employer's information
+to [Authors.md](./Authors.md).

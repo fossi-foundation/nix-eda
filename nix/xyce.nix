@@ -1,16 +1,25 @@
-# Copyright 2024 Efabless Corporation
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 fossi-foundation/nix-eda contributors
+# Copyright (c) 2024 UmbraLogic Technologies LLC
+# Copyright (c) 2003-2024 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
   stdenv,
   fetchFromGitHub,
@@ -64,7 +73,10 @@ stdenv.mkDerivation (finalAttrs: {
     sha256 = regression-sha256;
   };
 
-  srcs = [finalAttrs.xyce_src finalAttrs.regression_src];
+  srcs = [
+    finalAttrs.xyce_src
+    finalAttrs.regression_src
+  ];
 
   sourceRoot = finalAttrs.xyce_src.name;
 
@@ -95,8 +107,8 @@ stdenv.mkDerivation (finalAttrs: {
       libtool_2
     ]
     ++ lib.optionals enableDocs [
-      (texliveMedium.withPackages (ps:
-        with ps; [
+      (texliveMedium.withPackages (
+        ps: with ps; [
           enumitem
           koma-script
           optional
@@ -105,20 +117,19 @@ stdenv.mkDerivation (finalAttrs: {
           multirow
           newtx
           preprint
-        ]))
+        ]
+      ))
     ];
 
-  buildInputs =
-    [
-      bison
-      blas
-      flex
-      fftw
-      lapack
-      suitesparse
-      trilinos
-    ]
-    ++ lib.optionals trilinos.withMPI [mpi];
+  buildInputs = [
+    bison
+    blas
+    flex
+    fftw
+    lapack
+    suitesparse
+    trilinos
+  ] ++ lib.optionals trilinos.withMPI [ mpi ];
 
   doCheck = enableTests;
 
@@ -141,9 +152,17 @@ stdenv.mkDerivation (finalAttrs: {
     [
       bc
       perl
-      (python3.withPackages (ps: with ps; [numpy scipy]))
+      (python3.withPackages (
+        ps: with ps; [
+          numpy
+          scipy
+        ]
+      ))
     ]
-    ++ lib.optionals trilinos.withMPI [mpi openssh];
+    ++ lib.optionals trilinos.withMPI [
+      mpi
+      openssh
+    ];
 
   checkPhase = ''
     XYCE_BINARY="$(pwd)/src/Xyce"
@@ -168,7 +187,10 @@ stdenv.mkDerivation (finalAttrs: {
       "''${EXECSTRING}"
   '';
 
-  outputs = ["out" "doc"];
+  outputs = [
+    "out"
+    "doc"
+  ];
 
   postInstall = lib.optionalString enableDocs ''
     local docFiles=("doc/Users_Guide/Xyce_UG"

@@ -1,7 +1,5 @@
-# Copyright (c) 2025 nix-eda Contributors
-#
-# Adapted from nixpkgs
-#
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 fossi-foundation/nix-eda contributors
 # Copyright (c) 2003-2025 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -38,7 +36,8 @@
   # Metadata
   version ? "2.0.0",
   sha256 ? "sha256-BpshczKA83ZeytGDrHEg6IAbI5FxciAUnzwE10hgPC0=",
-}: let
+}:
+let
   self = buildPythonPackage {
     pname = "cocotb";
     inherit version;
@@ -52,8 +51,11 @@
       inherit sha256;
     };
 
-    buildInputs = [setuptools zlib];
-    propagatedBuildInputs = [find-libpython];
+    buildInputs = [
+      setuptools
+      zlib
+    ];
+    propagatedBuildInputs = [ find-libpython ];
 
     postPatch = ''
       patchShebangs bin/*.py
@@ -67,7 +69,7 @@
       ghdl
     ];
 
-    pythonImportsCheck = ["cocotb"];
+    pythonImportsCheck = [ "cocotb" ];
 
     meta = {
       changelog = "https://github.com/cocotb/cocotb/releases/tag/v${version}";
@@ -79,4 +81,4 @@
     };
   };
 in
-  self
+self

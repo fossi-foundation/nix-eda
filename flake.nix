@@ -1,177 +1,215 @@
-# Copyright 2025 nix-eda Contributors
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2025 fossi-foundation/nix-eda contributors
+# Copyright (c) 2024-2025 UmbraLogic Technologies LLC
 #
-# Adapted from efabless/nix-eda
+# Permission is hereby granted, free of charge, to any person obtaining
+# a copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to
+# the following conditions:
 #
-# Copyright 2024 Efabless Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
   };
-  outputs = {
-    self,
-    nixpkgs,
-    ...
-  }: let
-    lib = nixpkgs.lib;
-  in {
-    # Helper functions
-    createDockerImage = import ./nix/create-docker.nix;
-    composePythonOverlay = composable: pkgs': pkgs: {
-      pythonPackagesExtensions =
-        pkgs.pythonPackagesExtensions
-        ++ [
+  outputs =
+    {
+      self,
+      nixpkgs,
+      ...
+    }:
+    let
+      lib = nixpkgs.lib;
+    in
+    {
+      # Helper functions
+      createDockerImage = import ./nix/create-docker.nix;
+      composePythonOverlay = composable: pkgs': pkgs: {
+        pythonPackagesExtensions = pkgs.pythonPackagesExtensions ++ [
           (composable pkgs' pkgs)
         ];
-    };
-    flakesToOverlay = flakes: (
-      lib.composeManyExtensions (builtins.map
-        (flake: _: pkgs: flake.packages."${pkgs.stdenv.system}")
-        flakes)
-    );
-    forAllSystems = fn:
-      lib.genAttrs [
-        "x86_64-linux"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ]
-      fn;
+      };
+      flakesToOverlay =
+        flakes:
+        (lib.composeManyExtensions (
+          builtins.map (
+            flake: _: pkgs:
+            flake.packages."${pkgs.stdenv.system}"
+          ) flakes
+        ));
+      forAllSystems =
+        fn:
+        lib.genAttrs [
+          "x86_64-linux"
+          "aarch64-linux"
+          "x86_64-darwin"
+          "aarch64-darwin"
+        ] fn;
 
-    # Common
-    overlays = {
-      default = lib.composeManyExtensions [
-        (
-          pkgs': pkgs: {
+      # Common
+      overlays = {
+        default = lib.composeManyExtensions [
+          (pkgs': pkgs: {
             buildPythonEnvForInterpreter = (import ./nix/build-python-env-for-interpreter.nix) lib;
-            fetchGitHubSnapshot = lib.callPackageWith pkgs' ./nix/fetch_github_snapshot.nix {};
-          }
-        )
-        (
-          self.composePythonOverlay (pkgs': pkgs: pypkgs': pypkgs: let
-            callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
-          in {
-            cocotb = callPythonPackage ./nix/cocotb.nix {
-              ghdl =
-                if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms)
-                then pkgs'.ghdl-bin
-                else pkgs'.ghdl-llvm;
-            };
-            kfactory = pypkgs.kfactory.overrideAttrs (attrs': attrs: {
-              version = "1.9.3";
-              src = pypkgs'.fetchPypi {
-                inherit (attrs') pname version;
-                sha256 = "sha256-1HC+Ip+BbjbyjuYjF44DOLOglndvibd+grdAYzoLfHQ=";
-              };
-            });
-            pyglet = callPythonPackage ./nix/pyglet.nix {};
-            gdsfactory = callPythonPackage ./nix/gdsfactory.nix {};
-            gdstk = callPythonPackage ./nix/gdstk.nix {};
-            tclint = callPythonPackage ./nix/tclint.nix {};
-            antlr4_9-runtime = callPythonPackage ./nix/python3-antlr4-runtime.nix {
-              antlr4 = pkgs'.antlr4_9;
-            };
+            fetchGitHubSnapshot = lib.callPackageWith pkgs' ./nix/fetch_github_snapshot.nix { };
           })
-        )
-        (pkgs': pkgs: let
-          callPackage = lib.callPackageWith pkgs';
-        in {
-          # Dependencies
-          ## Newer versions have worse performance with Yosys
-          bitwuzla = callPackage ./nix/bitwuzla.nix {};
+          (self.composePythonOverlay (
+            pkgs': pkgs: pypkgs': pypkgs:
+            let
+              callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
+            in
+            {
+              cocotb = callPythonPackage ./nix/cocotb.nix {
+                ghdl =
+                  if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms) then
+                    pkgs'.ghdl-bin
+                  else
+                    pkgs'.ghdl-llvm;
+              };
+              kfactory = pypkgs.kfactory.overrideAttrs (
+                attrs': attrs: {
+                  version = "1.9.3";
+                  src = pypkgs'.fetchPypi {
+                    inherit (attrs') pname version;
+                    sha256 = "sha256-1HC+Ip+BbjbyjuYjF44DOLOglndvibd+grdAYzoLfHQ=";
+                  };
+                }
+              );
+              pyglet = callPythonPackage ./nix/pyglet.nix { };
+              gdsfactory = callPythonPackage ./nix/gdsfactory.nix { };
+              gdstk = callPythonPackage ./nix/gdstk.nix { };
+              tclint = callPythonPackage ./nix/tclint.nix { };
+              antlr4_9-runtime = callPythonPackage ./nix/python3-antlr4-runtime.nix {
+                antlr4 = pkgs'.antlr4_9;
+              };
+            }
+          ))
+          (
+            pkgs': pkgs:
+            let
+              callPackage = lib.callPackageWith pkgs';
+            in
+            {
+              # Dependencies
+              ## Newer versions have worse performance with Yosys
+              bitwuzla = callPackage ./nix/bitwuzla.nix { };
 
-          ## Cairo X11 on Mac
-          cairo = pkgs.cairo.override {
-            x11Support = true;
-          };
+              ## Cairo X11 on Mac
+              cairo = pkgs.cairo.override {
+                x11Support = true;
+              };
 
-          ## slightly worse floating point errors cause ONE of the tests to fail
-          ## on x86_64-darwin
-          qrupdate = pkgs.qrupdate.overrideAttrs (self: super: {
-            doCheck = pkgs.system != "x86_64-darwin";
-          });
+              ## slightly worse floating point errors cause ONE of the tests to fail
+              ## on x86_64-darwin
+              qrupdate = pkgs.qrupdate.overrideAttrs (
+                self: super: {
+                  doCheck = pkgs.system != "x86_64-darwin";
+                }
+              );
 
-          ## ghdl
-          ghdl-llvm = pkgs.ghdl-llvm.override {gnat = pkgs'.gnat14;};
-          ghdl-bin = callPackage ./nix/ghdl-bin.nix {};
+              ## ghdl
+              ghdl-llvm = pkgs.ghdl-llvm.override { gnat = pkgs'.gnat14; };
+              ghdl-bin = callPackage ./nix/ghdl-bin.nix { };
 
-          # Main
-          magic = callPackage ./nix/magic.nix {};
-          magic-vlsi = pkgs'.magic; # alias, there's a python package called magic
-          netgen = callPackage ./nix/netgen.nix {};
-          ngspice = callPackage ./nix/ngspice.nix {};
-          klayout = callPackage ./nix/klayout.nix {};
-          klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
-          #
-          iverilog = callPackage ./nix/iverilog.nix {};
-          klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix {};
-          tclFull = callPackage ./nix/tclFull.nix {};
-          tk-x11 = callPackage ./nix/tk-x11.nix {};
-          verilator = callPackage ./nix/verilator.nix {};
-          xschem = callPackage ./nix/xschem.nix {};
-          xyce = callPackage ./nix/xyce.nix {};
-          yosys = callPackage ./nix/yosys.nix {};
-          yosys-sby = callPackage ./nix/yosys-sby.nix {};
-          yosys-eqy = callPackage ./nix/yosys-eqy.nix {};
-          yosys-lighter = callPackage ./nix/yosys-lighter.nix {};
-          yosys-slang = callPackage ./nix/yosys-slang.nix {};
-          yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
-            ghdl =
-              if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms)
-              then pkgs'.ghdl-bin
-              else pkgs'.ghdl-llvm;
-          };
-        })
-        (
-          self.composePythonOverlay (
-            pkgs': pkgs: pypkgs': pypkgs: let
-              callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
-            in {
-              pyosys = pypkgs'.toPythonModule (pkgs'.yosys.override {python3 = pypkgs'.python;}).python;
-              klayout = pypkgs'.toPythonModule (pkgs'.klayout.override {python3 = pypkgs'.python;}).python;
+              # Main
+              magic = callPackage ./nix/magic.nix { };
+              magic-vlsi = pkgs'.magic; # alias, there's a python package called magic
+              netgen = callPackage ./nix/netgen.nix { };
+              ngspice = callPackage ./nix/ngspice.nix { };
+              klayout = callPackage ./nix/klayout.nix { };
+              klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
+              #
+              iverilog = callPackage ./nix/iverilog.nix { };
+              klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix { };
+              tclFull = callPackage ./nix/tclFull.nix { };
+              tk-x11 = callPackage ./nix/tk-x11.nix { };
+              verilator = callPackage ./nix/verilator.nix { };
+              xschem = callPackage ./nix/xschem.nix { };
+              xyce = callPackage ./nix/xyce.nix { };
+              yosys = callPackage ./nix/yosys.nix { };
+              yosys-sby = callPackage ./nix/yosys-sby.nix { };
+              yosys-eqy = callPackage ./nix/yosys-eqy.nix { };
+              yosys-lighter = callPackage ./nix/yosys-lighter.nix { };
+              yosys-slang = callPackage ./nix/yosys-slang.nix { };
+              yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
+                ghdl =
+                  if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms) then
+                    pkgs'.ghdl-bin
+                  else
+                    pkgs'.ghdl-llvm;
+              };
             }
           )
-        )
-      ];
-    };
+          (self.composePythonOverlay (
+            pkgs': pkgs: pypkgs': pypkgs:
+            let
+              callPythonPackage = lib.callPackageWith (pkgs' // pkgs'.python3.pkgs);
+            in
+            {
+              pyosys = pypkgs'.toPythonModule (pkgs'.yosys.override { python3 = pypkgs'.python; }).python;
+              klayout = pypkgs'.toPythonModule (pkgs'.klayout.override { python3 = pypkgs'.python; }).python;
+            }
+          ))
+        ];
+      };
 
-    legacyPackages = self.forAllSystems (
-      system:
+      legacyPackages = self.forAllSystems (
+        system:
         import nixpkgs {
           inherit system;
-          overlays = [self.overlays.default];
+          overlays = [ self.overlays.default ];
         }
-    );
+      );
 
-    # Outputs
-    formatter = self.forAllSystems (
-      system: self.legacyPackages."${system}".alejandra
-    );
+      # Outputs
+      formatter = self.forAllSystems (system: self.legacyPackages."${system}".nixfmt-tree);
 
-    packages = self.forAllSystems (
-      system: let
-        pkgs = self.legacyPackages."${system}";
-      in
+      packages = self.forAllSystems (
+        system:
+        let
+          pkgs = self.legacyPackages."${system}";
+        in
         {
-          yosysFull = pkgs.yosys.withPlugins (with pkgs; [
+          yosysFull = pkgs.yosys.withPlugins (
+            with pkgs;
+            [
+              yosys-sby
+              yosys-eqy
+              yosys-lighter
+              yosys-slang
+              yosys-ghdl
+            ]
+          );
+          inherit (pkgs)
+            magic
+            magic-vlsi
+            netgen
+            klayout
+            klayout-gdsfactory
+            tclFull
+            tk-x11
+            iverilog
+            verilator
+            xschem
+            ngspice
+            bitwuzla
+            yosys
             yosys-sby
             yosys-eqy
             yosys-lighter
             yosys-slang
-            yosys-ghdl
-          ]);
-          inherit (pkgs) magic magic-vlsi netgen klayout klayout-gdsfactory tclFull tk-x11 iverilog verilator xschem ngspice bitwuzla yosys yosys-sby yosys-eqy yosys-lighter yosys-slang;
+            ;
           inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
@@ -181,6 +219,6 @@
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isx86_64 {
           inherit (pkgs) yosys-ghdl;
         }
-    );
-  };
+      );
+    };
 }

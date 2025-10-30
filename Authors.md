@@ -9,8 +9,8 @@ alphabetical order):
 > https://github.com/fossi-foundation/nix-eda/graphs/contributors for a full list
 > of human contributors.
 
-* Efabless Corporation \<https://efabless.com\>
-  (via https://github.com/efabless/nix-eda)
+* UmbraLogic Technologies LLC \<https://chipfoundry.io>
+  * As owner of Efabless Corporation IP
 * Leo Moser \<leo.moser@pm.me\>
 * Mohamed Gaber \<<me@donn.website>\>
 
@@ -18,3 +18,5 @@ alphabetical order):
 
 * Phillip Wagner \<philipp@fossi-foundation.org\> - for help setting up the
   Nix Cache
+* Jeffrey DiCorpo \<jeffdi@chipfoundry.io\> - for agreeing to relicense under
+  the MIT license so we would be able to upstream.
