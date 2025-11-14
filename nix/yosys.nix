@@ -39,9 +39,9 @@
   fetchurl,
   fetchGitHubSnapshot,
   bash,
-  version ? "0.59",
-  rev ? "e86797f0297ef75826cebdd0e6f4cc51b7c77e0a",
-  sha256 ? "sha256-08ZxWgYF+orLX6l97BBdYqAJ13Iq0gSex01Zfd8BPzE=",
+  version ? "0.59.1",
+  rev ? null,
+  sha256 ? "sha256-XUQu07i6kBR745OZU/UQTwGbRt/uZHKpBNRrcUP87Bo=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
@@ -50,10 +50,6 @@
   makeBinaryWrapper,
 }:
 let
-  boost-python = boost.override {
-    python = python3;
-    enablePython = true;
-  };
   yosys-python3-env = python3.withPackages (
     ps: with ps; [
       cxxheaderparser
@@ -88,17 +84,6 @@ let
           url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys.tar.gz";
           inherit sha256;
         };
-
-    unpackPhase = ''
-      runHook preUnpack
-      if [ -d ${finalAttrs.src} ]; then
-        cp -r ${finalAttrs.src}/* .
-        chmod u+w -R .
-      else
-        tar -xzvC . -f ${finalAttrs.src} --strip-components=1
-      fi
-      runHook postUnpack
-    '';
 
     nativeBuildInputs = [
       pkg-config
@@ -164,6 +149,23 @@ let
       };
     };
 
+    unpackPhase = ''
+      runHook preUnpack
+      if [ -d ${finalAttrs.src} ]; then
+        cp -r ${finalAttrs.src}/* .
+        chmod u+w -R .
+      else
+        tar -xzC . -f ${finalAttrs.src}
+      fi
+      runHook postUnpack
+    '';
+    
+    configurePhase = ''
+      runHook preConfigure
+      CC=clang CXX=clang++ make config-clang
+      runHook postConfigure
+    '';
+
     makeFlags = [
       "PRETTY=0"
       "PREFIX=${placeholder "out"}"
@@ -172,15 +174,8 @@ let
       "ENABLE_YOSYS=1"
       "ENABLE_PYOSYS=1"
       "PYTHON_DESTDIR=${placeholder "python"}/${site-packages}"
+      "PYOSYS_USE_UV=0"
     ];
-
-    postPatch = ''
-      substituteInPlace ./Makefile \
-        --replace 'echo UNKNOWN' 'echo ${version}'
-
-      chmod +x ./misc/yosys-config.in
-      set -x
-    '';
 
     postInstall = ''
       python3 ./setup.py dist_info -o $python/${site-packages}
@@ -189,11 +184,11 @@ let
     doCheck = false;
     enableParallelBuilding = true;
 
-    meta = with lib; {
+    meta = {
       description = "Yosys Open SYnthesis Suite";
-      license = with licenses; [ mit ];
+      license = [ lib.licenses.mit ];
       homepage = "https://www.yosyshq.com/";
-      platforms = platforms.all;
+      platforms = lib.platforms.all;
     };
   });
 in
