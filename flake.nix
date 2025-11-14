@@ -70,6 +70,7 @@
               callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
             in
             {
+              pybind11_3 = callPythonPackage ./nix/pybind11_3.nix { };
               cocotb = callPythonPackage ./nix/cocotb.nix {
                 ghdl =
                   if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms) then
