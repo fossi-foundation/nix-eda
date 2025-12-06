@@ -33,9 +33,9 @@
   cairo,
   python3,
   gnused,
-  version ? "8.3.576",
+  version ? "8.3.581",
   rev ? null,
-  sha256 ? "sha256-IpGOY0oLqIj6gMMzg/BBwkdY6E15/BCTOtShzjnZQXI=",
+  sha256 ? "sha256-mv6ekJsaFx6m828NenIRa4ryZsR7YHB1vWKI+axgx8U=",
 }:
 clangStdenv.mkDerivation {
   pname = "magic-vlsi";
