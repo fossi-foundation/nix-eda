@@ -30,8 +30,8 @@
   yosys-sby,
   python3,
   makeBinaryWrapper,
-  version ? "0.59",
-  sha256 ? "sha256-dDDU3ld4e3CcqLzCwcV+AU2C8ZNFStRLpqlD3fIfdMw=",
+  version ? "0.60",
+  sha256 ? "sha256-XSN7Flw6uU0SEhAX5pMWIsxxZaBKBjyjR+JKUwdSxw4=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-eqy";
