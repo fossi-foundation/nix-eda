@@ -17,8 +17,11 @@ def run(purpose, *args):
         exit(-1)
     return process.stdout
 
+system = tuple()
+if len(sys.argv) > 1:
+    system = ("--system", sys.argv[1])
 
-flake_meta = json.load(run("get flake metadata", "nix", "flake", "show", "--json"))
+flake_meta = json.load(run("get flake metadata", "nix", "flake", "show", *system, "--json"))
 packages = flake_meta["packages"]
 for platform, packages in packages.items():
     for package, package_info in packages.items():
