@@ -130,7 +130,13 @@ def extract_tarball(tarball_path: str, extract_to: str):
             tar.extract(member, path=extract_to, filter="tar")
 
 
-def fetch_tarball_and_submodules(repo_url, commit, base_path=None, filter="."):
+def fetch_tarball_and_submodules(
+    repo_url,
+    commit,
+    base_path=None,
+    filter=".",
+    add_gitcommit=False,
+):
     if base_path is None:
         base_path = urllib.parse.urlsplit(repo_url).path.split("/")[-1]
     key = (repo_url, commit)
@@ -154,6 +160,10 @@ def fetch_tarball_and_submodules(repo_url, commit, base_path=None, filter="."):
     tree_resp = github_client.get(tree_url)
     tree_resp.raise_for_status()
     tree_data = tree_resp.json()
+
+    if add_gitcommit:
+        with open(os.path.join(base_path, ".gitcommit"), "w") as f:
+            f.write(tree_data["sha"])
 
     submodules = {
         item["path"]: item["sha"]
@@ -215,6 +225,7 @@ def fetch_tarball_and_submodules(repo_url, commit, base_path=None, filter="."):
             commit=sha,
             base_path=sub_path,
             filter=filter,
+            add_gitcommit=add_gitcommit,
         )
 
     with open(
@@ -238,9 +249,15 @@ def fetch_tarball_and_submodules(repo_url, commit, base_path=None, filter="."):
     default=".",
     help="Regex to match submodule paths. Submodules that are not matched will be excluded.",
 )
+@click.option(
+    "--add-gitcommit",
+    default=False,
+    is_flag=True,
+    help="Adds a .gitcommit file containing the commit sha256 of each resolved tree",
+)
 @click.argument("repo_url")
 @click.argument("commit")
-def main(repo_url, commit, out_dir, filter):
+def main(repo_url, commit, out_dir, filter, add_gitcommit):
     """
     Downloads a snapshot of a GitHub repo, i.e. with all GitHub-based submodules
     recursively downloaded.
@@ -254,6 +271,7 @@ def main(repo_url, commit, out_dir, filter):
         commit=commit,
         base_path=out_dir,
         filter=filter,
+        add_gitcommit=add_gitcommit,
     )
 
 

@@ -30,6 +30,7 @@
   repo,
   rev,
   hash,
+  add-gitcommit ? false,
 }:
 stdenvNoCC.mkDerivation {
   name = "github-${repo}-${rev}-snapshot";
@@ -45,7 +46,7 @@ stdenvNoCC.mkDerivation {
   phases = [ "installPhase" ];
   installPhase = ''
     python3 ${./supporting/download_github_snapshot.py} \
-      --out-dir $out \
+      ${lib.optionalString add-gitcommit "--add-gitcommit"} --out-dir $out \
       https://github.com/${owner}/${repo} \
       ${rev}
   '';

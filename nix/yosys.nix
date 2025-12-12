@@ -39,9 +39,9 @@
   fetchurl,
   fetchGitHubSnapshot,
   bash,
-  version ? "0.59.1",
+  version ? "0.60",
   rev ? null,
-  sha256 ? "sha256-XUQu07i6kBR745OZU/UQTwGbRt/uZHKpBNRrcUP87Bo=",
+  sha256 ? "sha256-JKxNdc3AXE1IaodM5eg0t3PkkGsnIwFpIbN9Gj56G/k=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
@@ -78,6 +78,7 @@ let
           repo = "yosys";
           inherit rev;
           hash = sha256;
+          add-gitcommit = true;
         }
       else
         fetchurl {
@@ -152,14 +153,14 @@ let
     unpackPhase = ''
       runHook preUnpack
       if [ -d ${finalAttrs.src} ]; then
-        cp -r ${finalAttrs.src}/* .
+        cp -r ${finalAttrs.src}/* ${finalAttrs.src}/.* .
         chmod u+w -R .
       else
         tar -xzC . -f ${finalAttrs.src}
       fi
       runHook postUnpack
     '';
-    
+
     configurePhase = ''
       runHook preConfigure
       CC=clang CXX=clang++ make config-clang

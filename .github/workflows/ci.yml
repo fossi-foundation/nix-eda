@@ -8,31 +8,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          [
+        os: [
             {
               name: "Ubuntu 24.04",
               family: "linux",
               runner: "ubuntu-24.04",
               archs: "x86_64",
+              nix_double: "x86_64-linux",
             },
             {
               name: "Ubuntu 22.04",
               family: "linux",
               runner: "ubuntu-22.04-arm",
               archs: "aarch64",
+              nix_double: "aarch64-linux",
             },
             {
               name: "macOS 15",
               family: "macos",
-              runner: "macos-15-intel",
+              runner: "macos-15", # with rosetta
               archs: "x86_64",
+              nix_double: "x86_64-darwin",
             },
             {
               name: "macOS 15",
               family: "macos",
               runner: "macos-15",
               archs: "arm64",
+              nix_double: "aarch64-darwin",
             },
           ]
     name: Nix Builds | ${{ matrix.os.name }} | ${{ matrix.os.archs }}
@@ -48,7 +51,7 @@ jobs:
       - id: enumerate_packages
         name: Get all packages
         run: |
-          echo "FLAKE_OUTPUTS=$(python3 ./.github/workflows/get_all_packages.py | tr '\n' ' ')" >> $GITHUB_ENV
+          echo "FLAKE_OUTPUTS=$(python3 ./.github/workflows/get_all_packages.py ${{ matrix.os.nix_double }} | tr '\n' ' ')" >> $GITHUB_ENV
       - name: Build All
         run: |
           set +e
