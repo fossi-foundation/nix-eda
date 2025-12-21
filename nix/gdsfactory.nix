@@ -25,9 +25,7 @@
   buildPythonPackage,
   fetchPypi,
   setuptools,
-  setuptools_scm,
-  # Tools
-  klayout,
+  setuptools-scm,
   # Python
   matplotlib,
   numpy,
@@ -55,14 +53,14 @@
   graphviz,
   rectangle-packer,
   rectpack,
-  kfactory,
+  kfactory_1,
   trimesh,
   pyglet,
   pytestCheckHook,
   scikit-image,
   # Metadata
-  version ? "9.9.1",
-  sha256 ? "sha256-rL/9clBJq/z7PyKKArGuAx2xtxce/3N3oPMIOiZA3VU=",
+  version ? "9.19.0",
+  sha256 ? "sha256-HB0vTcvZlVALHYGcqbvm+kcki53fc+jz8wIxqjj2wo4=",
 }:
 let
   self = buildPythonPackage {
@@ -96,7 +94,7 @@ let
       toolz
       types-pyyaml
       typer
-      kfactory
+      kfactory_1
       watchdog
       freetype-py
       mapbox-earcut

@@ -113,27 +113,26 @@ clangStdenv.mkDerivation {
     make -j$NIX_BUILD_CORES -C build-release PREFIX=$out
   '';
 
-  installPhase =
-    ''
-      mkdir -p $out/bin
-      make -C build-release install
-      cp -r src/pymod/distutils_src/klayout.egg-info $out/lib/pymod/klayout-${version}.dist-info
+  installPhase = ''
+    mkdir -p $out/bin
+    make -C build-release install
+    cp -r src/pymod/distutils_src/klayout.egg-info $out/lib/pymod/klayout-${version}.dist-info
 
-      mkdir -p $python/${python3.sitePackages}
-      ln -s $out/lib/pymod/klayout $python/${python3.sitePackages}/klayout
-      ln -s $out/lib/pymod/pya $python/${python3.sitePackages}/pya
-      ln -s $out/lib/pymod/klayout*.dist-info $python/${python3.sitePackages}/
-    ''
-    + (
-      if clangStdenv.isDarwin then
-        ''
-          cp $out/lib/klayout.app/Contents/MacOS/klayout $out/bin/
-        ''
-      else
-        ''
-          cp $out/lib/klayout $out/bin/
-        ''
-    );
+    mkdir -p $python/${python3.sitePackages}
+    ln -s $out/lib/pymod/klayout $python/${python3.sitePackages}/klayout
+    ln -s $out/lib/pymod/pya $python/${python3.sitePackages}/pya
+    ln -s $out/lib/pymod/klayout*.dist-info $python/${python3.sitePackages}/
+  ''
+  + (
+    if clangStdenv.isDarwin then
+      ''
+        cp $out/lib/klayout.app/Contents/MacOS/klayout $out/bin/
+      ''
+    else
+      ''
+        cp $out/lib/klayout $out/bin/
+      ''
+  );
 
   # The automatic Qt wrapper overrides makeWrapperArgs
   preFixup = lib.strings.optionalString clangStdenv.isDarwin ''

@@ -5,7 +5,7 @@
 A [flake](https://nixos.wiki/wiki/Flakes) containing a collection of Nix
 derivations for EDA (Electronic Design Automation) utilities.
 
-> nix-eda is not affiliated with the NixOS Foundation or any of its affiliates.
+> nix-eda is not affiliated with the NixOS Foundation.
 
 We compile and cache the tools for the following platforms:
 
@@ -36,7 +36,7 @@ We compile and cache the tools for the following platforms:
     * (`yosysFull` for all plugins)
     
 > [!NOTE]  
-> As of the time of writing, if you're using KLayout andgdsfactory for sky130
+> As of the time of writing, if you're using KLayout and gdsfactory for sky130
 > PCells, the versions of klayout and gdsfactory in nix-eda 5.0.0+ are 
 > incompatible as the PCells are out-of-date.
 >
@@ -44,6 +44,22 @@ We compile and cache the tools for the following platforms:
 > as follows:
 >
 > `nix shell github:fossi-foundation/nix-eda/4.3.1#klayout-gdsfactory`
+
+## Versioning Strategy
+
+nix-eda updates:
+- the major version for either API breaks or an update to NixOS (which typically also breaks the API)
+- the minor version for updated tools or newly added tools
+- the patch version for bugfixes
+
+| nix-eda version | NixOS version | Comments |
+| - | - | - |
+| 6 | 25.11 | |
+| 5 | 25.05 | |
+| 4 | 24.11 | Switched Python overlays to use `pythonPackagesExtensions` |
+| 3 | 24.11 | |
+| 2 | 24.05 | Switched to using overlays instead of memory-intensive composition |
+| 1 | 24.05 | Initial release |
 
 ## Installation
 
@@ -101,4 +117,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-``` 
+```
