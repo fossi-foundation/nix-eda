@@ -67,29 +67,27 @@ stdenv.mkDerivation {
     ))
     # ccache
   ];
-  nativeBuildInputs =
-    [
-      makeWrapper
-      flex
-      bison
-      autoconf
-      help2man
-      git
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isLinux [
-      gdb
-    ];
+  nativeBuildInputs = [
+    makeWrapper
+    flex
+    bison
+    autoconf
+    help2man
+    git
+  ]
+  ++ lib.optionals stdenv.hostPlatform.isLinux [
+    gdb
+  ];
 
-  nativeCheckInputs =
-    [
-      which
-      coreutils
-      # cmake
-      python3
-    ]
-    ++ lib.optionals stdenv.hostPlatform.isLinux [
-      numactl
-    ];
+  nativeCheckInputs = [
+    which
+    coreutils
+    # cmake
+    python3
+  ]
+  ++ lib.optionals stdenv.hostPlatform.isLinux [
+    numactl
+  ];
 
   doCheck = true;
   checkTarget = "test";

@@ -65,48 +65,47 @@ let
     ]
     ++ extraPkgs;
 
-  users =
-    {
-      root = {
-        uid = 0;
-        shell = "${pkgs.bashInteractive}/bin/bash";
-        home = "/root";
+  users = {
+    root = {
+      uid = 0;
+      shell = "${pkgs.bashInteractive}/bin/bash";
+      home = "/root";
+      gid = 0;
+      groups = [ "root" ];
+      description = "System administrator";
+    };
+
+    nobody = {
+      uid = 65534;
+      shell = "${pkgs.shadow}/bin/nologin";
+      home = "/var/empty";
+      gid = 65534;
+      groups = [ "nobody" ];
+      description = "Unprivileged account (don't use!)";
+    };
+  }
+  // lib.listToAttrs (
+    map (n: {
+      name = "nixbld${toString n}";
+      value = {
+        uid = 30000 + n;
+        gid = 30000;
+        groups = [ "nixbld" ];
+        description = "Nix build user ${toString n}";
+      };
+    }) (lib.lists.range 1 32)
+  )
+  // lib.listToAttrs (
+    map (n: {
+      name = "user-${toString n}";
+      value = {
+        uid = n;
         gid = 0;
         groups = [ "root" ];
-        description = "System administrator";
+        description = "user account";
       };
-
-      nobody = {
-        uid = 65534;
-        shell = "${pkgs.shadow}/bin/nologin";
-        home = "/var/empty";
-        gid = 65534;
-        groups = [ "nobody" ];
-        description = "Unprivileged account (don't use!)";
-      };
-    }
-    // lib.listToAttrs (
-      map (n: {
-        name = "nixbld${toString n}";
-        value = {
-          uid = 30000 + n;
-          gid = 30000;
-          groups = [ "nixbld" ];
-          description = "Nix build user ${toString n}";
-        };
-      }) (lib.lists.range 1 32)
-    )
-    // lib.listToAttrs (
-      map (n: {
-        name = "user-${toString n}";
-        value = {
-          uid = n;
-          gid = 0;
-          groups = [ "root" ];
-          description = "user account";
-        };
-      }) (lib.lists.range 1 29999)
-    );
+    }) (lib.lists.range 1 29999)
+  );
 
   groups = {
     root.gid = 0;
@@ -325,12 +324,11 @@ pkgs.dockerTools.buildLayeredImageWithNixDb {
 
   contents = [ baseSystem ];
 
-  extraCommands =
-    ''
-      rm -rf nix-support
-      ln -s /nix/var/nix/profiles nix/var/nix/gcroots/profiles
-    ''
-    + image-extraCommands;
+  extraCommands = ''
+    rm -rf nix-support
+    ln -s /nix/var/nix/profiles nix/var/nix/gcroots/profiles
+  ''
+  + image-extraCommands;
   fakeRootCommands =
     let
       sudo = pkgs.sudo;
@@ -386,6 +384,7 @@ pkgs.dockerTools.buildLayeredImageWithNixDb {
       "GIT_SSL_CAINFO=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
       "NIX_SSL_CERT_FILE=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt"
       "NIX_PATH=/nix/var/nix/profiles/per-user/root/channels:/root/.nix-defexpr/channels"
-    ] ++ image-config-extra-env;
+    ]
+    ++ image-config-extra-env;
   };
 }

@@ -90,7 +90,8 @@ let
       pkg-config
       bison
       flex
-    ] ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
+    ]
+    ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
     propagatedBuildInputs = [
       tcl

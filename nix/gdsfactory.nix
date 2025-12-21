@@ -25,7 +25,7 @@
   buildPythonPackage,
   fetchPypi,
   setuptools,
-  setuptools_scm,
+  setuptools-scm,
   # Tools
   klayout,
   # Python
