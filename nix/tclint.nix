@@ -29,7 +29,7 @@
   importlib-metadata,
   pygls,
   setuptools,
-  setuptools_scm,
+  setuptools-scm,
   version ? "0.5.0",
   sha256 ? "sha256-FT0a0pYhpsr0xlehrg+QqyPqOaM0paU+iG0+Bx8tDrU=",
 }:
@@ -56,7 +56,7 @@ let
 
     nativeBuildInputs = [
       setuptools
-      setuptools_scm
+      setuptools-scm
     ];
 
     propagatedBuildInputs = [

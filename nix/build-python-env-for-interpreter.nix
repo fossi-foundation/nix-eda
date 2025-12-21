@@ -57,48 +57,46 @@ lib.makeOverridable (
 
         nativeBuildInputs = [ makeBinaryWrapper ];
 
-        postBuild =
-          ''
-            rm -rf "$out/bin"
-            mkdir -p "$out/bin"
+        postBuild = ''
+          rm -rf "$out/bin"
+          mkdir -p "$out/bin"
 
-            LIBPY_OLD=$out/lib/${python3.libPrefix}
-            LIBPY_NEW=$(echo $LIBPY_OLD | sed -e 's@/python@/${target.name}-python@')
-            mv $LIBPY_OLD $LIBPY_NEW
+          LIBPY_OLD=$out/lib/${python3.libPrefix}
+          LIBPY_NEW=$(echo $LIBPY_OLD | sed -e 's@/python@/${target.name}-python@')
+          mv $LIBPY_OLD $LIBPY_NEW
 
-            path=${target}
-            if [ -d "$path/bin" ]; then
-              cd "$path/bin"
-              for prg in *; do
-                if [ -f "$prg" ]; then
-                  rm -f "$out/bin/$prg"
-                  if [ -x "$prg" ]; then
-                    makeWrapper "$path/bin/$prg" "$out/bin/$prg"\
-                      --set NIX_PYTHONPREFIX "$out"\
-                      --set NIX_PYTHONPATH "$LIBPY_NEW/site-packages"\
-                      ${lib.optionalString (!permitUserSite) ''--set PYTHONNOUSERSITE "true"''}\
-                      ${lib.concatStringsSep " " makeWrapperArgs}
-                  fi
+          path=${target}
+          if [ -d "$path/bin" ]; then
+            cd "$path/bin"
+            for prg in *; do
+              if [ -f "$prg" ]; then
+                rm -f "$out/bin/$prg"
+                if [ -x "$prg" ]; then
+                  makeWrapper "$path/bin/$prg" "$out/bin/$prg"\
+                    --set NIX_PYTHONPREFIX "$out"\
+                    --set NIX_PYTHONPATH "$LIBPY_NEW/site-packages"\
+                    ${lib.optionalString (!permitUserSite) ''--set PYTHONNOUSERSITE "true"''}\
+                    ${lib.concatStringsSep " " makeWrapperArgs}
                 fi
-              done
-            fi
-            ls $out/bin
-          ''
-          + postBuild;
+              fi
+            done
+          fi
+          ls $out/bin
+        ''
+        + postBuild;
 
-        meta =
-          {
-            mainProgram = target.meta.mainProgram or target.pname or target.name;
-            description = "Python environment for ${target.name}";
-          }
-          // lib.attrsets.filterAttrs (
-            k: v:
-            builtins.elem k [
-              "license"
-              "platforms"
-              "broken"
-            ]
-          ) target.meta;
+        meta = {
+          mainProgram = target.meta.mainProgram or target.pname or target.name;
+          description = "Python environment for ${target.name}";
+        }
+        // lib.attrsets.filterAttrs (
+          k: v:
+          builtins.elem k [
+            "license"
+            "platforms"
+            "broken"
+          ]
+        ) target.meta;
 
         passthru = python3.passthru // {
           interpreter = "${env}/bin/${python3.executable}";

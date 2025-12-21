@@ -21,7 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
   };
   outputs =
     {
@@ -45,7 +45,7 @@
         (lib.composeManyExtensions (
           builtins.map (
             flake: _: pkgs:
-            flake.packages."${pkgs.stdenv.system}"
+            flake.packages."${pkgs.stdenv.stdenv.hostPlatform.system}"
           ) flakes
         ));
       forAllSystems =
@@ -73,21 +73,12 @@
               pybind11_3 = callPythonPackage ./nix/pybind11_3.nix { };
               cocotb = callPythonPackage ./nix/cocotb.nix {
                 ghdl =
-                  if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms) then
+                  if (lib.lists.any (el: el == pkgs'.stdenv.hostPlatform.system) pkgs'.ghdl-bin.meta.platforms) then
                     pkgs'.ghdl-bin
                   else
                     pkgs'.ghdl-llvm;
               };
-              kfactory = pypkgs.kfactory.overrideAttrs (
-                attrs': attrs: {
-                  version = "1.9.3";
-                  src = pypkgs'.fetchPypi {
-                    inherit (attrs') pname version;
-                    sha256 = "sha256-1HC+Ip+BbjbyjuYjF44DOLOglndvibd+grdAYzoLfHQ=";
-                  };
-                }
-              );
-              pyglet = callPythonPackage ./nix/pyglet.nix { };
+              kfactory_1 = callPythonPackage ./nix/kfactory_1.nix { };
               gdsfactory = callPythonPackage ./nix/gdsfactory.nix { };
               gdstk = callPythonPackage ./nix/gdstk.nix { };
               tclint = callPythonPackage ./nix/tclint.nix { };
@@ -115,7 +106,7 @@
               ## on x86_64-darwin
               qrupdate = pkgs.qrupdate.overrideAttrs (
                 self: super: {
-                  doCheck = pkgs.system != "x86_64-darwin";
+                  doCheck = pkgs.stdenv.hostPlatform.system != "x86_64-darwin";
                 }
               );
 
@@ -133,9 +124,9 @@
               #
               iverilog = callPackage ./nix/iverilog.nix { };
               klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix { };
-              tclFull = callPackage ./nix/tclFull.nix { };
+              tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – use (tcl.withPackages(ps: with ps; [tcllib tclx]))";
               tk-x11 = callPackage ./nix/tk-x11.nix { };
-              verilator = callPackage ./nix/verilator.nix { };
+              verilator = callPackage ./nix/verilator.nix { verilator = pkgs.verilator; };
               xschem = callPackage ./nix/xschem.nix { };
               xyce = callPackage ./nix/xyce.nix { };
               yosys = callPackage ./nix/yosys.nix { };
@@ -145,7 +136,7 @@
               yosys-slang = callPackage ./nix/yosys-slang.nix { };
               yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
                 ghdl =
-                  if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms) then
+                  if (lib.lists.any (el: el == pkgs'.stdenv.hostPlatform.system) pkgs'.ghdl-bin.meta.platforms) then
                     pkgs'.ghdl-bin
                   else
                     pkgs'.ghdl-llvm;
@@ -198,7 +189,6 @@
             netgen
             klayout
             klayout-gdsfactory
-            tclFull
             tk-x11
             iverilog
             verilator

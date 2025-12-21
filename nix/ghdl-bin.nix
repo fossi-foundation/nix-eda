@@ -2,7 +2,6 @@
 # Copyright (c) 2025 fossi-foundation/nix-eda contributors
 {
   lib,
-  system,
   stdenv,
   fetchurl,
   autoPatchelfHook,
@@ -15,7 +14,7 @@
 }:
 let
   version = data.version;
-  system-data = data."${system}";
+  system-data = data."${stdenv.hostPlatform.system}";
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "ghdl-bin";
