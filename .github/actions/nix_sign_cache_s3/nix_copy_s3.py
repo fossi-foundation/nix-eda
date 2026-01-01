@@ -113,7 +113,7 @@ def main(text_args):
 
         # 0. List all paths that this flake output depends on.
         try:
-            local_store_path_dict: Dict[str, Any] = check_json_out(
+            closure_raw: Any = check_json_out(
                 ["nix", "path-info", "--recursive", "--json", flake_output],
                 stderr=subprocess.PIPE,
             )
@@ -126,7 +126,16 @@ def main(text_args):
             else:
                 raise e from None
 
-        closure: Set[str] = set(local_store_path_dict.keys())
+        closure: Set[str]
+        if isinstance(closure_raw, dict):  # old behavior
+            closure = set(closure_raw.keys())
+        elif isinstance(closure_raw, list):  # lix
+            closure = set(entry["path"] for entry in closure_raw)
+        else:
+            logging.warning(
+                f"nix path-info returned an unexpected result: {repr(json.dumps(closure_raw))}…"
+            )
+            continue
 
         # 1. Check which paths have already been queried upstream, and
         # which need to be queried.
@@ -161,7 +170,7 @@ def main(text_args):
                 {
                     k: args_parsed.upstream_cache
                     for k in upstream_cache_paths_dict
-                    if upstream_cache_paths_dict[k] != None
+                    if upstream_cache_paths_dict[k] is not None
                 }
             )
 
@@ -169,7 +178,7 @@ def main(text_args):
         difference = closure - set(paths_in_upstream_caches.keys())
         if len(difference):
             logging.info(
-                f"One or more paths not found in upstream cache and will be uploaded:"
+                "One or more paths not found in upstream cache and will be uploaded:"
             )
             for path in difference:
                 logging.info(f"* {path}")
