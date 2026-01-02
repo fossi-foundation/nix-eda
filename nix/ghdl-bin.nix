@@ -10,6 +10,7 @@
   darwin,
   zlib,
   python3,
+  libgnat-bin,
   data ? (builtins.fromTOML (builtins.readFile ./ghdl-bin.toml)),
 }:
 let
@@ -27,20 +28,20 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildInputs = [
     zlib
+  ]
+  ++ lib.optionals (stdenv.hostPlatform.isLinux) [
+    libgnat-bin
   ];
 
   nativeBuildInputs =
     lib.optionals (!stdenv.hostPlatform.isDarwin) [
-      autoPatchelfHook
       patchelfUnstable
     ]
     ++ lib.optionals (stdenv.hostPlatform.isDarwin) [
-      (python3.withPackages (
-        ps: with ps; [
-          lief
-          click
-        ]
-      ))
+      (python3.withPackages (ps: [
+        ps.lief
+        ps.click
+      ]))
       darwin.autoSignDarwinBinariesHook
     ];
 
@@ -55,41 +56,53 @@ stdenv.mkDerivation (finalAttrs: {
     runHook postInstall
   '';
 
-  fixupPhase =
-    lib.optionalString (!stdenv.isDarwin) "exit -1" # TODO
-    + lib.optionalString (stdenv.isDarwin) ''
-      runHook preFixup
+  fixupPhase = ''
+    runHook preFixup
+  ''
+  + lib.optionalString (stdenv.isLinux) ''
+    $CC \
+      -shared \
+      -D GHDL_PREFIX=\"$out/lib/ghdl\" \
+      -o $out/lib/set_ghdl_pfx.so \
+      ${./supporting/ghdl-bin/set_ghdl_pfx.c}
+    patchelf\
+      --replace-needed libgnat-13.so ${libgnat-bin}/lib/libgnat-13.so \
+      --replace-needed libc.so.6 ${stdenv.cc.libc}/lib/libc.so.6 \
+      --replace-needed libm.so.6 ${stdenv.cc.libc}/lib/libm.so.6 \
+      --add-needed $out/lib/set_ghdl_pfx.so \
+      $out/lib/*.so 
+    patchelf\
+      --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+      --replace-needed libgnat-13.so ${libgnat-bin}/lib/libgnat-13.so \
+      --replace-needed libc.so.6 ${stdenv.cc.libc}/lib/libc.so.6 \
+      --replace-needed libm.so.6 ${stdenv.cc.libc}/lib/libm.so.6 \
+      $out/bin/ghdl
+  ''
+  +
+    # autoPatchelfHook handles fixup on linux
+    lib.optionalString (stdenv.isDarwin) ''
+      $CC \
+        -dynamiclib -install_name $out/lib/set_ghdl_pfx.dylib \
+        -D GHDL_PREFIX=\"$out/lib/ghdl\" \
+        -o $out/lib/set_ghdl_pfx.dylib \
+        ${./supporting/ghdl-bin/set_ghdl_pfx.c}
+      python3 ${./supporting/lief_inject_dylib.py} \
+        --inject $out/lib/set_ghdl_pfx.dylib \
+        --inplace $out/lib/libghdl-*.dylib
       install_name_tool \
         -change /usr/lib/libc++.1.dylib ${stdenv.cc.libcxx}/lib/libc++.1.dylib \
         -change /usr/lib/libz.1.dylib ${zlib}/lib/libz.1.dylib \
         $out/bin/ghdl1-llvm
-      clang \
-        -x c\
-        -dynamiclib \
-        -D GHDL_PREFIX=\"$out/lib/ghdl\" \
-        -o $out/lib/set_ghdl_pfx.dylib \
-        -install_name $out/lib/set_ghdl_pfx.dylib \
-        - <<'EOF'
-        #include <stdlib.h>
-
-        __attribute__((constructor))
-        static void set_ghdl_pfx(void) {
-            if (!getenv("GHDL_PREFIX")) {
-                setenv("GHDL_PREFIX", GHDL_PREFIX, 1);
-            }
-        }
-      EOF
-      python3 ${./supporting/lief_inject_dylib.py} \
-        --inject $out/lib/set_ghdl_pfx.dylib \
-        --inplace $out/lib/libghdl-*.dylib
-      runHook postFixup
-    '';
+    ''
+  + ''
+    runHook postFixup
+  '';
 
   meta = {
-    description = "VHDL 2008/93/87 simulator";
+    description = "VHDL 2008/93/87 simulator (from official binaries)";
     homepage = "https://github.com/ghdl/ghdl";
     license = lib.licenses.gpl2Plus;
+    mainProgram = "ghdl";
     platforms = lib.lists.remove "version" (builtins.attrNames data);
-    broken = !stdenv.isDarwin;
   };
 })

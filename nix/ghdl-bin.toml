@@ -1,11 +1,16 @@
-version = "5.0.1"
+version = "5.1.1" # match the nixpkgs version of ghdl -- nix eval .#ghdl.version
 
 [x86_64-darwin]
 backend = "llvm"
 platform_double = "macos13-x86_64"
-sha256 = "sha256-F29YhXysqAOSFfnq08krXOBVigQ0FSlXyishnVuWZEM="
+sha256 = "sha256-TDWp1gKNEcv8eyqY4M2yilbiaOX1htckaQT+xAvIGTo="
 
 [aarch64-darwin]
 backend = "llvm"
 platform_double = "macos14-aarch64"
-sha256 = "sha256-R+nLj50zBumolpcbKgrO8Td25bmNcXRaLmHVcy1eyWQ="
+sha256 = "sha256-6Fij7jzuIsl2NU7npmq2N3vuwak4NGLwulg6jfc/RsE="
+
+[x86_64-linux]
+backend = "gcc"
+platform_double = "ubuntu24.04-x86_64"
+sha256 = "sha256-Do14OOl3O4xCYElBXdqeSODXx+xu7Zu+ifLiMaJXIJ4="
