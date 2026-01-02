@@ -40,14 +40,6 @@
           (composable pkgs' pkgs)
         ];
       };
-      flakesToOverlay =
-        flakes:
-        (lib.composeManyExtensions (
-          builtins.map (
-            flake: _: pkgs:
-            flake.packages."${pkgs.stdenv.stdenv.hostPlatform.system}"
-          ) flakes
-        ));
       forAllSystems =
         fn:
         lib.genAttrs [
@@ -112,6 +104,7 @@
 
               ## ghdl
               ghdl-llvm = pkgs.ghdl-llvm.override { gnat = pkgs'.gnat14; };
+              libgnat-bin = callPackage ./nix/libgnat-bin.nix { };
               ghdl-bin = callPackage ./nix/ghdl-bin.nix { };
 
               # Main
@@ -184,6 +177,7 @@
             ]
           );
           inherit (pkgs)
+            ghdl-bin
             magic
             magic-vlsi
             netgen
@@ -200,15 +194,17 @@
             yosys-eqy
             yosys-lighter
             yosys-slang
+            yosys-ghdl
             ;
-          inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
+          inherit (pkgs.python3.pkgs)
+            gdsfactory
+            gdstk
+            tclint
+            cocotb
+            ;
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
           inherit (pkgs) xyce;
-          inherit (pkgs.python3.pkgs) cocotb;
-        }
-        // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isx86_64 {
-          inherit (pkgs) yosys-ghdl;
         }
       );
     };

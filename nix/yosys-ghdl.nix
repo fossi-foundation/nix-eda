@@ -26,9 +26,9 @@
   python3,
   ghdl,
   pkg-config,
-  rev ? "c9b05e481423c55ffcbb856fd5296701f670808c",
-  rev-date ? "2022-01-11",
-  sha256 ? "sha256-tT2+DXUtbJIBzBUBcyG2sz+3G+dTkciLVIczcRPr0Jw=",
+  rev ? "233dffbde92bb7fe8405712a3e78d66075ccda00",
+  rev-date ? "2025-10-07",
+  sha256 ? "sha256-wUJajkn0ObJIWGSK6WlDRSTWw0gJ1YpQjbUhNXFkJxU=",
 }:
 yosys.stdenv.mkDerivation {
   pname = "yosys-ghdl";
@@ -49,8 +49,8 @@ yosys.stdenv.mkDerivation {
     ghdl
   ];
 
-  nativeBuildInputs = [
-    pkg-config
+  makeFlags = [
+    "VER_HASH=${rev}"
   ];
 
   installPhase = ''
@@ -64,7 +64,7 @@ yosys.stdenv.mkDerivation {
 
   checkPhase = ''
     runHook preCheck
-    yosys -p "plugin -i $PWD/ghdl.so; ghdl testsuite/examples/dff/dff.vhdl -e dff; hierarchy"
+    yosys -m $PWD/ghdl.so -p "ghdl testsuite/examples/dff/dff.vhdl -e dff; hierarchy"
     runHook postcheck
   '';
 

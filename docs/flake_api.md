@@ -53,9 +53,6 @@ creation of dependent Flakes, ranked by importance:
     gdsfactory = callPythonPackage ./nix/gdsfactory.nix {};
   })
   ```
-* `flakesToOverlay`: As not all external flakes expose their packages as
-  overlays, this transforms one or more flakes into an overlay that can be
-  imported by nix.
 * `createDockerImage`: Adapted from
   [nix/docker.nix](https://raw.githubusercontent.com/NixOS/nix/master/docker.nix)
   — creates a Docker image with one or more nix packages globally installed,
