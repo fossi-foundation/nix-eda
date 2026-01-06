@@ -1,6 +1,6 @@
-import sys
 import json
 import subprocess
+import sys
 
 
 def run(purpose, *args):
@@ -17,11 +17,14 @@ def run(purpose, *args):
         exit(-1)
     return process.stdout
 
+
 system = tuple()
 if len(sys.argv) > 1:
     system = ("--system", sys.argv[1])
 
-flake_meta = json.load(run("get flake metadata", "nix", "flake", "show", *system, "--json"))
+flake_meta = json.load(
+    run("get flake metadata", "nix", "flake", "show", *system, "--json")
+)
 packages = flake_meta["packages"]
 for platform, packages in packages.items():
     for package, package_info in packages.items():
@@ -35,7 +38,7 @@ for platform, packages in packages.items():
         keys = list(drv.keys())
         if len(keys) != 1:
             print(
-                f"'nix derivation show' unexpectedly returned {len(keys)} paths, expected exactly 1: {tgt}",
+                f"'nix derivation show' unexpectedly returned {len(keys)} paths, expected exactly 1: {tgt}, {keys}",
                 file=sys.stderr,
             )
             exit(-1)

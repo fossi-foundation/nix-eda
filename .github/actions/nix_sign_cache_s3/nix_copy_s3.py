@@ -80,6 +80,18 @@ def check_json_out(args: List[str], **kwargs):
     return json.loads(out_str)
 
 
+def paths_from_path_info(path_info_raw: Any):
+    if isinstance(path_info_raw, dict):  # nix (as of 2.31.2)
+        return set(key for key in path_info_raw if path_info_raw[key] is not None)
+    elif isinstance(path_info_raw, list):  # lix (as of 2.93.3)
+        return set(entry["path"] for entry in path_info_raw if entry["valid"])
+    else:
+        logging.warning(
+            f"nix path-info returned an unexpected result: {repr(json.dumps(path_info_raw))}…"
+        )
+        return None
+
+
 def main(text_args):
     args = argparse.ArgumentParser()
     args.add_argument(
@@ -113,7 +125,7 @@ def main(text_args):
 
         # 0. List all paths that this flake output depends on.
         try:
-            local_store_path_dict: Dict[str, Any] = check_json_out(
+            closure_raw: Any = check_json_out(
                 ["nix", "path-info", "--recursive", "--json", flake_output],
                 stderr=subprocess.PIPE,
             )
@@ -126,7 +138,9 @@ def main(text_args):
             else:
                 raise e from None
 
-        closure: Set[str] = set(local_store_path_dict.keys())
+        closure = paths_from_path_info(closure_raw)
+        if closure is None:
+            continue
 
         # 1. Check which paths have already been queried upstream, and
         # which need to be queried.
@@ -139,7 +153,7 @@ def main(text_args):
         # 2. Query paths that need to be queried against upstream.
         if len(paths_to_query):
             logging.info("Checking for paths upstream…")
-            upstream_cache_paths_dict = check_json_out(
+            upstream_cache_info_raw = check_json_out(
                 [
                     "nix",
                     "path-info",
@@ -152,24 +166,23 @@ def main(text_args):
                 ],
                 stderr=subprocess.PIPE,
             )
+            upstream_cache_paths = paths_from_path_info(upstream_cache_info_raw)
+            if upstream_cache_paths is None:
+                continue
 
             # 2a. Update list of paths known to be upstream
             #
             #    We store which cache for the probability of supporting multiple
             #    caches in the future. Don't count on it though.
             paths_in_upstream_caches.update(
-                {
-                    k: args_parsed.upstream_cache
-                    for k in upstream_cache_paths_dict
-                    if upstream_cache_paths_dict[k] != None
-                }
+                {path: args_parsed.upstream_cache for path in upstream_cache_paths}
             )
 
         # 3. Upload remaining paths from closure, if any, to our S3-based cache.
         difference = closure - set(paths_in_upstream_caches.keys())
         if len(difference):
             logging.info(
-                f"One or more paths not found in upstream cache and will be uploaded:"
+                "One or more paths not found in upstream cache and will be uploaded:"
             )
             for path in difference:
                 logging.info(f"* {path}")
