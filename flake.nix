@@ -212,7 +212,6 @@
             yosys-slang
             ;
           inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
-          potato = pkgs.stdenv.mkDerivation { name = "potato"; }; # intentionally failing package to test something
         }
         // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
           inherit (pkgs) xyce;
