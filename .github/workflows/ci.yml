@@ -65,7 +65,7 @@ jobs:
           exit $error
       - name: Sign and Cache Nix Builds to S3
         uses: ./.github/actions/nix_sign_cache_s3
-        if: steps.enumerate_packages.outcome == 'success'
+        if: "!cancelled() && steps.enumerate_packages.outcome == 'success'"
         with:
           flake_outputs: ${{ env.FLAKE_OUTPUTS }}
           nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
