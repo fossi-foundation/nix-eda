@@ -90,7 +90,6 @@ stdenv.mkDerivation (finalAttrs: {
         --inject $out/lib/set_ghdl_pfx.dylib \
         --inplace $out/lib/libghdl-*.dylib
       install_name_tool \
-        -change /usr/lib/libc++.1.dylib ${stdenv.cc.libcxx}/lib/libc++.1.dylib \
         -change /usr/lib/libz.1.dylib ${zlib}/lib/libz.1.dylib \
         $out/bin/ghdl1-llvm
     ''
