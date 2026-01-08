@@ -8,9 +8,15 @@
   patchelfUnstable,
   insert-dylib,
   darwin,
-  zlib,
   python3,
   libgnat-bin,
+  # runtime libs
+  zlib,
+  ## runtime libs (gcc backend)
+  libmpc, 
+  mpfr,
+  gmp,
+  zstd,
   data ? (builtins.fromTOML (builtins.readFile ./ghdl-bin.toml)),
 }:
 let
@@ -31,6 +37,10 @@ stdenv.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals (stdenv.hostPlatform.isLinux) [
     libgnat-bin
+    libmpc
+    mpfr
+    gmp
+    zstd
   ];
 
   nativeBuildInputs =
@@ -53,6 +63,7 @@ stdenv.mkDerivation (finalAttrs: {
     cp -r bin $out/bin
     cp -r include $out/include
     cp -r lib $out/lib
+    if [ -d libexec ]; then cp -r libexec $out/libexec; fi
     runHook postInstall
   '';
 
@@ -76,7 +87,11 @@ stdenv.mkDerivation (finalAttrs: {
       --replace-needed libgnat-13.so ${libgnat-bin}/lib/libgnat-13.so \
       --replace-needed libc.so.6 ${stdenv.cc.libc}/lib/libc.so.6 \
       --replace-needed libm.so.6 ${stdenv.cc.libc}/lib/libm.so.6 \
-      $out/bin/ghdl
+      --replace-needed libmpc.so.3 ${libmpc}/lib/libmpc.so.3 \
+      --replace-needed libmpfr.so.6 ${mpfr}/lib/libmpfr.so.6 \
+      --replace-needed libgmp.so.10 ${gmp}/lib/libgmp.so.10 \
+      --replace-needed libzstd.so.1 ${zstd.out}/lib/libzstd.so.1 \
+      $out/bin/ghdl $out/libexec/gcc/*/*/ghdl1
   ''
   +
     # autoPatchelfHook handles fixup on linux
