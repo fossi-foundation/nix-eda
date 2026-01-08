@@ -12,8 +12,15 @@ def run(purpose, *args):
     )
     process.wait()
     if process.returncode:
-        print(f"Failed to {purpose}:", file=sys.stderr)
-        print(process.stderr.read(), file=sys.stderr)
+        stderr = process.stderr.read()
+        if "marked as broken" in stderr:
+            print(f"Warning: failed to {purpose} (one or more dependencies marked as broken on current hostPlatform)", file=sys.stderr)
+            return None
+        if "not available on the requested hostPlatform" in stderr:
+            print(f"Warning: failed to {purpose} (one or more dependencies unavailable on current hostPlatform)", file=sys.stderr)
+            return None
+        print(f"Unexpected error: failed to {purpose}:", file=sys.stderr)
+        print(stderr, file=sys.stderr)
         exit(-1)
     return process.stdout
 
@@ -32,9 +39,10 @@ for platform, packages in packages.items():
             continue
         tgt = f".#packages.{platform}.{package}"
         outputs = []
-        drv = json.load(
-            run(f"get derivation info for {package}", "nix", "derivation", "show", tgt)
-        )
+        raw = run(f"get derivation info for {package}", "nix", "derivation", "show", tgt)
+        if raw is None:
+            continue # broken/unsupported
+        drv = json.load(raw)
         keys = list(drv.keys())
         if len(keys) != 1:
             print(

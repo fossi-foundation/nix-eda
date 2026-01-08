@@ -177,18 +177,18 @@
             ]
           );
           inherit (pkgs)
+            bitwuzla
             ghdl-bin
+            iverilog
+            klayout
+            klayout-gdsfactory
             magic
             magic-vlsi
             netgen
-            klayout
-            klayout-gdsfactory
             tk-x11
-            iverilog
             verilator
             xschem
-            ngspice
-            bitwuzla
+            xyce
             yosys
             yosys-sby
             yosys-eqy
@@ -202,9 +202,6 @@
             tclint
             cocotb
             ;
-        }
-        // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
-          inherit (pkgs) xyce;
         }
       );
     };
