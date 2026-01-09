@@ -24,7 +24,7 @@
   yosys,
   fetchFromGitHub,
   python3,
-  ghdl,
+  ghdl-bin,
   pkg-config,
   rev ? "233dffbde92bb7fe8405712a3e78d66075ccda00",
   rev-date ? "2025-10-07",
@@ -46,7 +46,7 @@ yosys.stdenv.mkDerivation {
   buildInputs = [
     yosys
     python3
-    ghdl
+    ghdl-bin
   ];
 
   makeFlags = [
@@ -72,6 +72,6 @@ yosys.stdenv.mkDerivation {
     description = "VHDL synthesis (based on GHDL and Yosys)";
     homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
     license = lib.licenses.gpl3Plus;
-    inherit (ghdl.meta) platforms;
+    inherit (ghdl-bin.meta) platforms;
   };
 }

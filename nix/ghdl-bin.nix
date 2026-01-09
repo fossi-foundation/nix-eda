@@ -12,35 +12,34 @@
   libgnat-bin,
   # runtime libs
   zlib,
-  ## runtime libs (gcc backend)
-  libmpc, 
-  mpfr,
-  gmp,
-  zstd,
+  llvm_18,
   data ? (builtins.fromTOML (builtins.readFile ./ghdl-bin.toml)),
 }:
 let
   version = data.version;
   system-data = data."${stdenv.hostPlatform.system}";
+  libc = (lib.getLib stdenv.cc.libc);
+  cclib = (lib.getLib stdenv.cc.cc);
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "ghdl-bin";
   inherit version;
 
   src = fetchurl {
-    url = "https://github.com/ghdl/ghdl/releases/download/v${finalAttrs.version}/ghdl-${system-data.backend}-${finalAttrs.version}-${system-data.platform_double}.tar.gz";
+    url = "https://github.com/ghdl/ghdl/releases/download/v${finalAttrs.version}/ghdl-llvm-${finalAttrs.version}-${system-data.platform_double}.tar.gz";
     inherit (system-data) sha256;
   };
 
   buildInputs = [
     zlib
   ]
-  ++ lib.optionals (stdenv.hostPlatform.isLinux) [
+  ++ lib.optionals (!stdenv.hostPlatform.isDarwin) [
+    # system libc/libc++ used
+    libc
+    cclib
+    # statically linked
     libgnat-bin
-    libmpc
-    mpfr
-    gmp
-    zstd
+    llvm_18.lib
   ];
 
   nativeBuildInputs =
@@ -85,13 +84,12 @@ stdenv.mkDerivation (finalAttrs: {
     patchelf\
       --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
       --replace-needed libgnat-13.so ${libgnat-bin}/lib/libgnat-13.so \
-      --replace-needed libc.so.6 ${stdenv.cc.libc}/lib/libc.so.6 \
-      --replace-needed libm.so.6 ${stdenv.cc.libc}/lib/libm.so.6 \
-      --replace-needed libmpc.so.3 ${libmpc}/lib/libmpc.so.3 \
-      --replace-needed libmpfr.so.6 ${mpfr}/lib/libmpfr.so.6 \
-      --replace-needed libgmp.so.10 ${gmp}/lib/libgmp.so.10 \
-      --replace-needed libzstd.so.1 ${zstd.out}/lib/libzstd.so.1 \
-      $out/bin/ghdl $out/libexec/gcc/*/*/ghdl1
+      --replace-needed libc.so.6 ${libc}/lib/libc.so.6 \
+      --replace-needed libm.so.6 ${libc}/lib/libm.so.6 \
+      --replace-needed libstdc++.so.6 ${cclib}/lib/libstdc++.so.6 \
+      --replace-needed libLLVM.so.18.1 ${llvm_18.lib}/lib/libLLVM.so.18.1 \
+      $out/bin/ghdl $out/bin/ghdl1-llvm $out/bin/ghwdump
+      
   ''
   +
     # autoPatchelfHook handles fixup on linux

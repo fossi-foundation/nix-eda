@@ -63,13 +63,7 @@
             in
             {
               pybind11_3 = callPythonPackage ./nix/pybind11_3.nix { };
-              cocotb = callPythonPackage ./nix/cocotb.nix {
-                ghdl =
-                  if (lib.lists.any (el: el == pkgs'.stdenv.hostPlatform.system) pkgs'.ghdl-bin.meta.platforms) then
-                    pkgs'.ghdl-bin
-                  else
-                    pkgs'.ghdl-llvm;
-              };
+              cocotb = callPythonPackage ./nix/cocotb.nix { };
               kfactory_1 = callPythonPackage ./nix/kfactory_1.nix { };
               gdsfactory = callPythonPackage ./nix/gdsfactory.nix { };
               gdstk = callPythonPackage ./nix/gdstk.nix { };
@@ -102,8 +96,9 @@
                 }
               );
 
-              ## ghdl
-              ghdl-llvm = pkgs.ghdl-llvm.override { gnat = pkgs'.gnat14; };
+              ## repack ghdl binaries
+              ## rationale: gnat is terribly broken in nixpkgs and i can't figure
+              ##            out how to fix it.
               libgnat-bin = callPackage ./nix/libgnat-bin.nix { };
               ghdl-bin = callPackage ./nix/ghdl-bin.nix { };
 
@@ -127,13 +122,7 @@
               yosys-eqy = callPackage ./nix/yosys-eqy.nix { };
               yosys-lighter = callPackage ./nix/yosys-lighter.nix { };
               yosys-slang = callPackage ./nix/yosys-slang.nix { };
-              yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
-                ghdl =
-                  if (lib.lists.any (el: el == pkgs'.stdenv.hostPlatform.system) pkgs'.ghdl-bin.meta.platforms) then
-                    pkgs'.ghdl-bin
-                  else
-                    pkgs'.ghdl-llvm;
-              };
+              yosys-ghdl = callPackage ./nix/yosys-ghdl.nix { };
             }
           )
           (self.composePythonOverlay (
@@ -173,8 +162,8 @@
               yosys-eqy
               yosys-lighter
               yosys-slang
-              yosys-ghdl
             ]
+            ++ lib.optionals (lib.lists.any (el: el == system) pkgs.yosys-ghdl.meta.platforms) [ yosys-ghdl ]
           );
           inherit (pkgs)
             bitwuzla

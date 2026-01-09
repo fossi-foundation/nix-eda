@@ -80,7 +80,8 @@ stdenv.mkDerivation (finalAttrs: {
 
   srcs = [
     finalAttrs.xyce_src
-  ] ++ lib.optionals enableTests [
+  ]
+  ++ lib.optionals enableTests [
     finalAttrs.regression_src
   ];
 
@@ -220,6 +221,9 @@ stdenv.mkDerivation (finalAttrs: {
     '';
     homepage = "https://xyce.sandia.gov";
     license = lib.licenses.gpl3;
-    platforms = [ "x86_64-linux" "aarch64-linux" ];
+    platforms = [
+      "x86_64-linux"
+      "aarch64-linux"
+    ];
   };
 })
