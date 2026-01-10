@@ -28,7 +28,6 @@
   m4,
   ncurses,
   tcl,
-  tcsh,
   tk-x11,
   cairo,
   python3,

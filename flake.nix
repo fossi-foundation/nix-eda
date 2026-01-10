@@ -21,7 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
   };
   outputs =
     {
@@ -40,14 +40,6 @@
           (composable pkgs' pkgs)
         ];
       };
-      flakesToOverlay =
-        flakes:
-        (lib.composeManyExtensions (
-          builtins.map (
-            flake: _: pkgs:
-            flake.packages."${pkgs.stdenv.system}"
-          ) flakes
-        ));
       forAllSystems =
         fn:
         lib.genAttrs [
@@ -71,23 +63,8 @@
             in
             {
               pybind11_3 = callPythonPackage ./nix/pybind11_3.nix { };
-              cocotb = callPythonPackage ./nix/cocotb.nix {
-                ghdl =
-                  if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms) then
-                    pkgs'.ghdl-bin
-                  else
-                    pkgs'.ghdl-llvm;
-              };
-              kfactory = pypkgs.kfactory.overrideAttrs (
-                attrs': attrs: {
-                  version = "1.9.3";
-                  src = pypkgs'.fetchPypi {
-                    inherit (attrs') pname version;
-                    sha256 = "sha256-1HC+Ip+BbjbyjuYjF44DOLOglndvibd+grdAYzoLfHQ=";
-                  };
-                }
-              );
-              pyglet = callPythonPackage ./nix/pyglet.nix { };
+              cocotb = callPythonPackage ./nix/cocotb.nix { };
+              kfactory_1 = callPythonPackage ./nix/kfactory_1.nix { };
               gdsfactory = callPythonPackage ./nix/gdsfactory.nix { };
               gdstk = callPythonPackage ./nix/gdstk.nix { };
               tclint = callPythonPackage ./nix/tclint.nix { };
@@ -115,12 +92,14 @@
               ## on x86_64-darwin
               qrupdate = pkgs.qrupdate.overrideAttrs (
                 self: super: {
-                  doCheck = pkgs.system != "x86_64-darwin";
+                  doCheck = pkgs.stdenv.hostPlatform.system != "x86_64-darwin";
                 }
               );
 
-              ## ghdl
-              ghdl-llvm = pkgs.ghdl-llvm.override { gnat = pkgs'.gnat14; };
+              ## repack ghdl binaries
+              ## rationale: gnat is terribly broken in nixpkgs and i can't figure
+              ##            out how to fix it.
+              libgnat-bin = callPackage ./nix/libgnat-bin.nix { };
               ghdl-bin = callPackage ./nix/ghdl-bin.nix { };
 
               # Main
@@ -133,9 +112,9 @@
               #
               iverilog = callPackage ./nix/iverilog.nix { };
               klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix { };
-              tclFull = callPackage ./nix/tclFull.nix { };
+              tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
               tk-x11 = callPackage ./nix/tk-x11.nix { };
-              verilator = callPackage ./nix/verilator.nix { };
+              verilator = callPackage ./nix/verilator.nix { verilator = pkgs.verilator; };
               xschem = callPackage ./nix/xschem.nix { };
               xyce = callPackage ./nix/xyce.nix { };
               yosys = callPackage ./nix/yosys.nix { };
@@ -143,13 +122,7 @@
               yosys-eqy = callPackage ./nix/yosys-eqy.nix { };
               yosys-lighter = callPackage ./nix/yosys-lighter.nix { };
               yosys-slang = callPackage ./nix/yosys-slang.nix { };
-              yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
-                ghdl =
-                  if (lib.lists.any (el: el == pkgs'.system) pkgs'.ghdl-bin.meta.platforms) then
-                    pkgs'.ghdl-bin
-                  else
-                    pkgs'.ghdl-llvm;
-              };
+              yosys-ghdl = callPackage ./nix/yosys-ghdl.nix { };
             }
           )
           (self.composePythonOverlay (
@@ -189,36 +162,35 @@
               yosys-eqy
               yosys-lighter
               yosys-slang
-              yosys-ghdl
             ]
+            ++ lib.optionals (lib.lists.any (el: el == system) pkgs.yosys-ghdl.meta.platforms) [ yosys-ghdl ]
           );
           inherit (pkgs)
+            bitwuzla
+            ghdl-bin
+            iverilog
+            klayout
+            klayout-gdsfactory
             magic
             magic-vlsi
             netgen
-            klayout
-            klayout-gdsfactory
-            tclFull
             tk-x11
-            iverilog
             verilator
             xschem
-            ngspice
-            bitwuzla
+            xyce
             yosys
             yosys-sby
             yosys-eqy
             yosys-lighter
             yosys-slang
+            yosys-ghdl
             ;
-          inherit (pkgs.python3.pkgs) gdsfactory gdstk tclint;
-        }
-        // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isLinux {
-          inherit (pkgs) xyce;
-          inherit (pkgs.python3.pkgs) cocotb;
-        }
-        // lib.optionalAttrs self.legacyPackages."${system}".stdenv.hostPlatform.isx86_64 {
-          inherit (pkgs) yosys-ghdl;
+          inherit (pkgs.python3.pkgs)
+            gdsfactory
+            gdstk
+            tclint
+            cocotb
+            ;
         }
       );
     };

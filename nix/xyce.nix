@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2025 fossi-foundation/nix-eda contributors
-# Copyright (c) 2024 UmbraLogic Technologies LLC
 # Copyright (c) 2003-2024 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -19,16 +18,15 @@
 # NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# WITH THE SOFTWARE OR
 {
   stdenv,
   fetchFromGitHub,
   fetchgit,
   lib,
-  autoconf,
-  automake,
   bison,
   blas,
+  cmake,
   flex,
   fftw,
   gfortran,
@@ -48,78 +46,73 @@
   perl,
   python3,
   enableTests ? true,
-  version ? "7.8.0",
-  sha256 ? "sha256-+aNy2bGuFQ517FZUvU0YqN0gmChRpVuFEmFGTCx9AgY=",
-  regression-sha256 ? "sha256-Fxi/NpXXIw/bseWaLi2iQ4sg4S9Z+othGgSvQoxyJ9c=",
 }:
+
+assert withMPI -> trilinos.withMPI;
+
+let
+  version = "7.10.0";
+
+  # using fetchurl or fetchFromGitHub doesn't include the manuals
+  # due to .gitattributes files
+  xyce_src = fetchgit {
+    name = "Xyce";
+    url = "https://github.com/Xyce/Xyce.git";
+    rev = "Release-${version}";
+    hash = "sha256-8cvglBCykZVQk3BD7VE3riXfJ0PAEBwsoloqUsrMlBc=";
+  };
+
+  regression_src = fetchFromGitHub {
+    name = "Xyce_Regression";
+    owner = "Xyce";
+    repo = "Xyce_Regression";
+    rev = "Release-${version}";
+    hash = "sha256-aA/4UpzSb+EeJ1RVkVwSKiNh7BDcLHxNDnKXZmnCBmI=";
+  };
+in
+
 stdenv.mkDerivation (finalAttrs: {
   pname = "xyce";
   inherit version;
 
-  # Using fetchurl or fetchFromGitHub doesn't include the manuals
-  # due to .gitattributes files
-  xyce_src = fetchgit {
-    name = "xyce_src_${version}";
-    url = "https://github.com/Xyce/Xyce.git";
-    rev = "Release-${version}";
-    inherit sha256;
-  };
-
-  regression_src = fetchFromGitHub {
-    name = "xyce_regression_src_${version}";
-    owner = "Xyce";
-    repo = "Xyce_Regression";
-    rev = "Release-${version}";
-    sha256 = regression-sha256;
-  };
+  inherit xyce_src;
+  inherit regression_src;
 
   srcs = [
     finalAttrs.xyce_src
+  ]
+  ++ lib.optionals enableTests [
     finalAttrs.regression_src
   ];
 
   sourceRoot = finalAttrs.xyce_src.name;
 
-  preConfigure = "./bootstrap";
-
-  configureFlags =
-    [
-      "CXXFLAGS=-O3"
-      "--enable-xyce-shareable"
-      "--enable-shared"
-      "--enable-stokhos"
-      "--enable-amesos2"
-    ]
-    ++ lib.optionals trilinos.withMPI [
-      "--enable-mpi"
-      "CXX=mpicxx"
-      "CC=mpicc"
-      "F77=mpif77"
-    ];
+  cmakeFlags = lib.optionals withMPI [
+    "-DCMAKE_C_COMPILER=mpicc"
+    "-DCMAKE_CXX_COMPILER=mpicxx"
+  ];
 
   enableParallelBuilding = true;
 
-  nativeBuildInputs =
-    [
-      autoconf
-      automake
-      gfortran
-      libtool_2
-    ]
-    ++ lib.optionals enableDocs [
-      (texliveMedium.withPackages (
-        ps: with ps; [
-          enumitem
-          koma-script
-          optional
-          framed
-          enumitem
-          multirow
-          newtx
-          preprint
-        ]
-      ))
-    ];
+  nativeBuildInputs = [
+    cmake
+    gfortran
+    libtool_2
+  ]
+  ++ lib.optionals enableDocs [
+    (texliveMedium.withPackages (
+      ps: with ps; [
+        enumitem
+        koma-script
+        optional
+        framed
+        enumitem
+        multirow
+        newtx
+        preprint
+      ]
+    ))
+  ];
 
   buildInputs = [
     bison
@@ -129,11 +122,12 @@ stdenv.mkDerivation (finalAttrs: {
     lapack
     suitesparse
     trilinos
-  ] ++ lib.optionals trilinos.withMPI [ mpi ];
+  ]
+  ++ lib.optionals withMPI [ mpi ];
 
   doCheck = enableTests;
 
-  postPatch = ''
+  postPatch = lib.optionalString enableTests ''
     pushd ../${finalAttrs.regression_src.name}
     find Netlists -type f -regex ".*\.sh\|.*\.pl" -exec chmod ugo+x {} \;
     # some tests generate new files, some overwrite netlists
@@ -148,42 +142,41 @@ stdenv.mkDerivation (finalAttrs: {
     popd
   '';
 
-  nativeCheckInputs =
-    [
-      bc
-      perl
-      (python3.withPackages (
-        ps: with ps; [
-          numpy
-          scipy
-        ]
-      ))
-    ]
-    ++ lib.optionals trilinos.withMPI [
-      mpi
-      openssh
-    ];
+  nativeCheckInputs = [
+    bc
+    perl
+    (python3.withPackages (
+      ps: with ps; [
+        numpy
+        scipy
+      ]
+    ))
+  ]
+  ++ lib.optionals withMPI [
+    mpi
+    openssh
+  ];
 
   checkPhase = ''
     XYCE_BINARY="$(pwd)/src/Xyce"
-    EXECSTRING="${lib.optionalString trilinos.withMPI "mpirun -np 2 "}$XYCE_BINARY"
-    TEST_ROOT="$(pwd)/../${finalAttrs.regression_src.name}"
+    EXECSTRING="${lib.optionalString withMPI "mpirun -np 2 "}$XYCE_BINARY"
+    TEST_ROOT="$(pwd)/../../${finalAttrs.regression_src.name}"
 
     # Honor the TMP variable
     sed -i -E 's|/tmp|\$TMP|' $TEST_ROOT/TestScripts/suggestXyceTagList.sh
 
-    EXLUDE_TESTS_FILE=$TMP/exclude_tests.$$
+    EXCLUDE_TESTS_FILE=$TMP/exclude_tests.$$
     # Gold standard has additional ":R" suffix in result column label
-    echo "Output/HB/hb-step-tecplot.cir" >> $EXLUDE_TESTS_FILE
+    echo "Output/HB/hb-step-tecplot.cir" >> $EXCLUDE_TESTS_FILE
     # This test makes Xyce access /sys/class/net when run with MPI
-    ${lib.optionalString withMPI "echo \"CommandLine/command_line.cir\" >> $EXLUDE_TESTS_FILE"}
+    ${lib.optionalString withMPI "echo \"CommandLine/command_line.cir\" >> $EXCLUDE_TESTS_FILE"}
 
     $TEST_ROOT/TestScripts/run_xyce_regression \
       --output="$(pwd)/Xyce_Test" \
       --xyce_test="''${TEST_ROOT}" \
       --taglist="$($TEST_ROOT/TestScripts/suggestXyceTagList.sh "$XYCE_BINARY" | sed -E -e 's/TAGLIST=([^ ]+).*/\1/' -e '2,$d')" \
       --resultfile="$(pwd)/test_results" \
-      --excludelist="$EXLUDE_TESTS_FILE" \
+      --excludelist="$EXCLUDE_TESTS_FILE" \
       "''${EXECSTRING}"
   '';
 
@@ -193,9 +186,10 @@ stdenv.mkDerivation (finalAttrs: {
   ];
 
   postInstall = lib.optionalString enableDocs ''
+    pushd ../../${finalAttrs.xyce_src.name}
     local docFiles=("doc/Users_Guide/Xyce_UG"
       "doc/Reference_Guide/Xyce_RG"
-      "doc/Release_Notes/Release_Notes_${lib.versions.majorMinor version}/Release_Notes_${lib.versions.majorMinor version}")
+      "doc/Release_Notes/Release_Notes_${lib.versions.majorMinor finalAttrs.version}/Release_Notes_${lib.versions.majorMinor finalAttrs.version}")
 
     # SANDIA LaTeX class and some organization logos are not publicly available see
     # https://groups.google.com/g/xyce-users/c/MxeViRo8CT4/m/ppCY7ePLEAAJ
@@ -203,19 +197,22 @@ stdenv.mkDerivation (finalAttrs: {
       sed -i -E "s/\\includegraphics\[height=(0.[1-9]in)\]\{$img\}/\\mbox\{\\rule\{0mm\}\{\1\}\}/" ''${docFiles[2]}.tex
     done
 
-    install -d $doc/share/doc/${finalAttrs.pname}-${version}/
+    install -d $doc/share/doc/${finalAttrs.pname}-${finalAttrs.version}/
     for d in ''${docFiles[@]}; do
       # Use a public document class
       sed -i -E 's/\\documentclass\[11pt,report\]\{SANDreport\}/\\documentclass\[11pt,letterpaper\]\{scrreprt\}/' $d.tex
       sed -i -E 's/\\usepackage\[sand\]\{optional\}/\\usepackage\[report\]\{optional\}/' $d.tex
+      sed -i -E 's/\\SANDauthor/\\author/' $d.tex
       pushd $(dirname $d)
       make
-      install -t $doc/share/doc/${finalAttrs.pname}-${version}/ $(basename $d.pdf)
+      install -t $doc/share/doc/${finalAttrs.pname}-${finalAttrs.version}/ $(basename $d.pdf)
       popd
     done
+    popd
   '';
 
   meta = {
+    broken = stdenv.hostPlatform.isDarwin;
     description = "High-performance analog circuit simulator";
     longDescription = ''
       Xyce is a SPICE-compatible, high-performance analog circuit simulator,
@@ -224,7 +221,9 @@ stdenv.mkDerivation (finalAttrs: {
     '';
     homepage = "https://xyce.sandia.gov";
     license = lib.licenses.gpl3;
-    broken = stdenv.hostPlatform.isDarwin;
-    platforms = lib.platforms.unix;
+    platforms = [
+      "x86_64-linux"
+      "aarch64-linux"
+    ];
   };
 })

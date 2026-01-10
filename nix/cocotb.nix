@@ -31,7 +31,7 @@
   pytestCheckHook,
   swig,
   iverilog,
-  ghdl,
+  ghdl-bin,
   zlib,
   # Metadata
   version ? "2.0.0",
@@ -66,7 +66,7 @@ let
       pytestCheckHook
       swig
       iverilog
-      ghdl
+      ghdl-bin
     ];
 
     pythonImportsCheck = [ "cocotb" ];

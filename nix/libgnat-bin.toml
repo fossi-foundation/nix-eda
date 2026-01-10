@@ -1,0 +1,5 @@
+version = "13.3.0"
+
+[x86_64-linux]
+url = "http://launchpadlibrarian.net/747517407/libgnat-13_13.3.0-6ubuntu2~24.04_amd64.deb"
+sha256 = "sha256-SxllIywMHvsr9M7Zx1+h4k3x6h5cRj+sWxmBgEZEbac="
