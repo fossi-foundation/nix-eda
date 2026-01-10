@@ -112,7 +112,7 @@
               #
               iverilog = callPackage ./nix/iverilog.nix { };
               klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix { };
-              tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – use (tcl.withPackages(ps: with ps; [tcllib tclx]))";
+              tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
               tk-x11 = callPackage ./nix/tk-x11.nix { };
               verilator = callPackage ./nix/verilator.nix { verilator = pkgs.verilator; };
               xschem = callPackage ./nix/xschem.nix { };
