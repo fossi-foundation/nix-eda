@@ -23,12 +23,16 @@
   lib,
   buildPythonPackage,
   antlr4,
+  setuptools,
 }:
 buildPythonPackage {
   pname = "${antlr4.pname}-python3-runtime";
   inherit (antlr4.runtime.cpp) version src meta;
 
   doCheck = false; # "mocks" not packaged for NixOS
+
+  pyproject = true;
+  build-system = [ setuptools ];
 
   sourceRoot = "source/runtime/Python3";
 }
