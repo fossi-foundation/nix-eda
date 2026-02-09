@@ -25,7 +25,6 @@
   buildPythonPackage,
   fetchFromGitHub,
   setuptools,
-  setuptools-scm,
   cocotb-bus,
   find-libpython,
   pytestCheckHook,
@@ -34,8 +33,8 @@
   ghdl-bin,
   zlib,
   # Metadata
-  version ? "2.0.0",
-  sha256 ? "sha256-BpshczKA83ZeytGDrHEg6IAbI5FxciAUnzwE10hgPC0=",
+  version ? "2.0.1",
+  sha256 ? "sha256-LXQNqFlvP+WBaDGWPs5+BXBtW2dhDu+v+7lR/AMG21M=",
 }:
 let
   self = buildPythonPackage {

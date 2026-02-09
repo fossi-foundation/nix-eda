@@ -24,9 +24,9 @@
   fetchFromGitHub,
   yosys,
   python3,
-  rev ? "b8e7d4ece5d6e22ab62c03eead761c736dbcaf3c",
-  rev-date ? "2023-09-29",
-  sha256 ? "sha256-gftQwWrq7KVVQXfb/SThOvbEJK0DoPpiQ3f3X1thBiQ=",
+  rev ? "b6620e0dab2eaccae78d759e02d83eed78cb367a",
+  rev-date ? "2025-04-15",
+  sha256 ? "sha256-WOzCc6UlVpLt7SB5JNe4m+c1VrrJEmmXGK10MgVTP4U=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-lighter";

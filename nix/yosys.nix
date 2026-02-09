@@ -25,9 +25,7 @@
   symlinkJoin,
   clangStdenv,
   pkg-config,
-  cmake,
   makeWrapper,
-  boost,
   python3,
   bison,
   flex,
@@ -39,9 +37,9 @@
   fetchurl,
   fetchGitHubSnapshot,
   bash,
-  version ? "0.60",
+  version ? "0.62",
   rev ? null,
-  sha256 ? "sha256-JKxNdc3AXE1IaodM5eg0t3PkkGsnIwFpIbN9Gj56G/k=",
+  sha256 ? "sha256-cxxcb3F7mIFT0BSfTJgFm9luO7ypcE9SZGq32pfqQqo=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
