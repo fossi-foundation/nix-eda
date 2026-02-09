@@ -28,10 +28,9 @@
   bitwuzla,
   zlib,
   yosys-sby,
-  python3,
   makeBinaryWrapper,
   version ? "0.60",
-  sha256 ? "sha256-XSN7Flw6uU0SEhAX5pMWIsxxZaBKBjyjR+JKUwdSxw4=",
+  sha256 ? "sha256-7OwtyV3+9vZhTD0Ur8Dhd39xNtqNs2M5XETBN1F6Xb0=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-eqy";
