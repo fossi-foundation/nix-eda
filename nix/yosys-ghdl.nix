@@ -25,7 +25,6 @@
   fetchFromGitHub,
   python3,
   ghdl-bin,
-  pkg-config,
   rev ? "233dffbde92bb7fe8405712a3e78d66075ccda00",
   rev-date ? "2025-10-07",
   sha256 ? "sha256-wUJajkn0ObJIWGSK6WlDRSTWw0gJ1YpQjbUhNXFkJxU=",

@@ -24,12 +24,11 @@
   lib,
   yosys,
   fetchFromGitHub,
-  python3,
   boolector,
   z3,
   yices,
-  version ? "0.60",
-  sha256 ? "sha256-REK5ZS5iExSlqNazdUCXVJzaXtkPxJweyXro3azrC/8=",
+  version ? "0.62",
+  sha256 ? "sha256-vKQGms5BAwYVx1F5oMhe7O8bGrBFlgvw4hwTGW5xXIg=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-sby";
