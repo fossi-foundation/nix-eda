@@ -37,8 +37,8 @@
   fetchurl,
   buildEnv,
   makeBinaryWrapper,
-  version ? "0.30.4",
-  sha256 ? "sha256-eL1RjqZpZI3+20ax+NsQ3qoOPzdm4k6KJwW+Rn0wg8Y=",
+  version ? "0.30.6",
+  sha256 ? "sha256-5/TftZZgIo8QCTSEWkt3Kw9ha22J1kKVoSr/0cG+gWE=",
   # Python environments
   klayout,
   buildPythonEnvForInterpreter,
