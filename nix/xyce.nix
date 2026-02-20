@@ -219,6 +219,7 @@ stdenv.mkDerivation (finalAttrs: {
       capable of solving extremely large circuit problems by supporting
       large-scale parallel computing platforms.
     '';
+    mainProgram = "Xyce";
     homepage = "https://xyce.sandia.gov";
     license = lib.licenses.gpl3;
     platforms = [
