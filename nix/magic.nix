@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2025 fossi-foundation/nix-eda contributors
+# Copyright (c) 2025-2026 fossi-foundation/nix-eda contributors
 # Copyright (c) 2023 UmbraLogic Technologies LLC
 # Copyright (c) 2003-2023 Eelco Dolstra and the Nixpkgs/NixOS contributors
 #
@@ -32,9 +32,9 @@
   cairo,
   python3,
   gnused,
-  version ? "8.3.613",
+  version ? "8.3.614",
   rev ? null,
-  sha256 ? "sha256-bonbnXC+ms+iHwgsR8EtaE8SlirgZMj+MRVeNnnuN1Y=",
+  sha256 ? "sha256-xEGNW6YPOeHVnwlb3XHJFPBcCOVM+u9PvhM5APwRczI=",
 }:
 clangStdenv.mkDerivation {
   pname = "magic-vlsi";
@@ -82,11 +82,11 @@ clangStdenv.mkDerivation {
     patchShebangs $out/bin/magic
   '';
 
-  meta = with lib; {
+  meta = {
     mainProgram = "magic";
     description = "VLSI layout tool written in Tcl";
     homepage = "http://opencircuitdesign.com/magic/";
-    license = licenses.mit;
-    platforms = platforms.linux ++ platforms.darwin;
+    license = lib.licenses.mit;
+    platforms = with lib.platforms; linux ++ darwin;
   };
 }
