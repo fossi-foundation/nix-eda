@@ -37,8 +37,9 @@
   fetchurl,
   buildEnv,
   makeBinaryWrapper,
-  version ? "0.30.6",
-  sha256 ? "sha256-5/TftZZgIo8QCTSEWkt3Kw9ha22J1kKVoSr/0cG+gWE=",
+  version ? "0.30.7",
+  rev ? "bugfix/issue-2299",
+  sha256 ? "sha256-vswOiKUuKr8q1v4s7Fp5bmrTvXT0kq1LLYiGlMZWBFU=",
   # Python environments
   klayout,
   buildPythonEnvForInterpreter,
@@ -52,8 +53,15 @@ clangStdenv.mkDerivation {
     "python"
   ];
 
-  src = fetchurl {
-    url = "https://github.com/KLayout/klayout/archive/refs/tags/v${version}.tar.gz";
+  #src = fetchurl {
+  #  url = "https://github.com/KLayout/klayout/archive/refs/tags/v${version}.tar.gz";
+  #  inherit sha256;
+  #};
+  
+  src = fetchFromGitHub {
+    owner = "KLayout";
+    repo = "klayout";
+    rev = if rev == null then version else rev;
     inherit sha256;
   };
 
