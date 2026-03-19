@@ -37,8 +37,8 @@
   fetchurl,
   buildEnv,
   makeBinaryWrapper,
-  version ? "0.30.6",
-  sha256 ? "sha256-5/TftZZgIo8QCTSEWkt3Kw9ha22J1kKVoSr/0cG+gWE=",
+  version ? "0.30.7",
+  sha256 ? "sha256-/hoFtb8Yzyw7ZB5yiCB6mH5d6bxcfsiBJE+isFAth1Q=",
   # Python environments
   klayout,
   buildPythonEnvForInterpreter,
@@ -59,6 +59,7 @@ clangStdenv.mkDerivation {
 
   patches = [
     ./patches/klayout/abspath.patch
+    ./patches/klayout/performance_regression.patch
   ];
 
   postPatch = ''
