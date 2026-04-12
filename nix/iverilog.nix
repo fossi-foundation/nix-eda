@@ -36,9 +36,10 @@
   readline,
   zlib,
   buildPackages,
-  version ? "s20250103-60-gdb82380ce",
-  rev ? "db82380cecf9943fcc397818e6899b7146442127",
-  sha256 ? "sha256-0WA/SrHINtwv0UKX7Jjb8sjnXBfRIBoErK+MrdBwErg=",
+  addBinToPathHook,
+  version ? "13.0",
+  rev ? null,
+  sha256 ? "sha256-SfODx7K3UrDHMoKCbMFpxo4t9j9vG1oWF0RFS3dSUm4=",
 }:
 stdenv.mkDerivation {
   pname = "iverilog";
@@ -58,11 +59,13 @@ stdenv.mkDerivation {
     gperf
   ];
 
-  CC_FOR_BUILD = "${buildPackages.stdenv.cc}/bin/cc";
-  CXX_FOR_BUILD = "${buildPackages.stdenv.cc}/bin/c++";
-
-  patches = [
-  ];
+  env = {
+    CC_FOR_BUILD = "${lib.getExe' buildPackages.stdenv.cc "cc"}";
+    CXX_FOR_BUILD = "${lib.getExe' buildPackages.stdenv.cc "cc++"}";
+  }
+  // lib.optionalAttrs stdenv.hostPlatform.isDarwin {
+    NIX_CFLAGS_COMPILE = "-Wno-error=implicit-function-declaration";
+  };
 
   buildInputs = [
     bzip2
@@ -74,10 +77,6 @@ stdenv.mkDerivation {
   preConfigure = "sh autoconf.sh";
 
   enableParallelBuilding = true;
-
-  env = lib.optionalAttrs stdenv.hostPlatform.isDarwin {
-    NIX_CFLAGS_COMPILE = "-Wno-error=implicit-function-declaration";
-  };
 
   # NOTE(jleightcap): the `make check` target only runs a "Hello, World"-esque sanity check.
   # the tests in the doInstallCheck phase run a full regression test suite.
@@ -94,22 +93,32 @@ stdenv.mkDerivation {
         docopt
       ]
     ))
+    addBinToPathHook
   ];
 
   installCheckPhase = ''
     runHook preInstallCheck
-    export PATH="$PATH:$out/bin"
-    sh .github/test.sh
+
+    # PLI1 is not enabled in the build (ENABLE_PLI1=no), so skip PLI1 VPI tests
+    # which would fail at runtime with "Failed - running vvp".
+    sh .github/test.sh no-pli1
+
     runHook postInstallCheck
   '';
 
   meta = with lib; {
     description = "Icarus Verilog compiler";
     homepage = "https://steveicarus.github.io/iverilog";
+    downloadPage = "https://github.com/steveicarus/iverilog";
     license = with licenses; [
       gpl2Plus
       lgpl21Plus
     ];
     platforms = platforms.all;
+    badPlatforms = [
+      # Several tests fail with:
+      # ==> Failed - running iverilog.
+      "x86_64-darwin"
+    ];
   };
 }
