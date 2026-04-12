@@ -26,9 +26,9 @@
   cmake,
   fmt,
   jq,
-  rev ? "446240c31e2b4aa33334d3c568c5729a9e3ff9e7",
-  rev-date ? "2026-02-08",
-  hash ? "sha256-bZEQwDjGZyekhn0J3LJUzRVqh1rMtnjfjOo1vgS5CFE=",
+  rev ? "4e53d772996184b07e9bfe784060f96e6cb0a267",
+  rev-date ? "2026-03-25",
+  hash ? "sha256-1Jo1F5CTBXAAiDhtF5/v/uxeZV9AMdmXC7rrZaXHvGY=",
 }:
 clang18Stdenv.mkDerivation {
   name = "yosys-slang";
