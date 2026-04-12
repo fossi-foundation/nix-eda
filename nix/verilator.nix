@@ -3,9 +3,9 @@
 {
   verilator,
   fetchFromGitHub,
-  version ? "5.044",
+  version ? "5.046",
   rev ? null,
-  sha256 ? "sha256-z3jYNzhnZ+OocDAbmsRBWHNNPXLLvExKK1TLDi9JzPQ=",
+  sha256 ? "sha256-dfZzbQrw/14dFvWnkmCDElwsGm6GdFstNAURujvEIb8=",
 }:
 verilator.overrideAttrs (
   attrs': attrs: {
