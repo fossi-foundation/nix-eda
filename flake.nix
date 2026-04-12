@@ -120,7 +120,6 @@
               yosys = callPackage ./nix/yosys.nix { };
               yosys-sby = callPackage ./nix/yosys-sby.nix { };
               yosys-eqy = callPackage ./nix/yosys-eqy.nix { };
-              yosys-lighter = callPackage ./nix/yosys-lighter.nix { };
               yosys-slang = callPackage ./nix/yosys-slang.nix { };
               yosys-ghdl = callPackage ./nix/yosys-ghdl.nix { };
             }
@@ -160,7 +159,6 @@
             [
               yosys-sby
               yosys-eqy
-              yosys-lighter
               yosys-slang
             ]
             ++ lib.optionals (lib.lists.any (el: el == system) pkgs.yosys-ghdl.meta.platforms) [ yosys-ghdl ]
@@ -181,7 +179,6 @@
             yosys
             yosys-sby
             yosys-eqy
-            yosys-lighter
             yosys-slang
             yosys-ghdl
             ;
