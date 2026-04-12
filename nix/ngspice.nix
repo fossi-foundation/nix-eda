@@ -29,13 +29,13 @@
   fftw,
   withNgshared ? true,
   xorg,
-  autoconf269,
+  autoconf,
   automake,
   libtool,
   readline,
   llvmPackages,
-  version ? "44",
-  sha256 ? "sha256-OGXROrRPHwH2jHrA4HFphORdzlqG0SZgPCbY3zAWHps=",
+  version ? "46",
+  sha256 ? "sha256-oNFpmvGUCwZkknbc1v9aVmyMDK0Bsve16Z3tu01kwZs=",
 }:
 clangStdenv.mkDerivation {
   pname = "ngspice";
@@ -49,7 +49,7 @@ clangStdenv.mkDerivation {
   nativeBuildInputs = [
     flex
     bison
-    autoconf269
+    autoconf
     automake
     libtool
   ];
