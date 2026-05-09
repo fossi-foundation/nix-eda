@@ -59,6 +59,7 @@ clangStdenv.mkDerivation {
 
   patches = [
     ./patches/klayout/abspath.patch
+    ./patches/klayout/rdb_cell_mapping.patch
   ];
 
   postPatch = ''
