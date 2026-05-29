@@ -91,6 +91,10 @@ let
     ]
     ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
+    patches = [
+      ./patches/yosys/revert.patch
+    ];
+
     propagatedBuildInputs = [
       tcl
       libedit
