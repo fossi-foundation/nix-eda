@@ -37,9 +37,9 @@
   fetchurl,
   fetchGitHubSnapshot,
   bash,
-  version ? "0.65",
+  version ? "0.66",
   rev ? null,
-  sha256 ? "sha256-q2SS58GcS1HyXq46H/eEm+Fcnt4sAc04JphVvgdbszs=",
+  sha256 ? "sha256-ulZ+p/uxKH6Zau+PIP6QL2/UCFk6pQz66orgyQFauHI=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
@@ -80,7 +80,7 @@ let
         }
       else
         fetchurl {
-          url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys.tar.gz";
+          url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys-src.tar.gz";
           inherit sha256;
         };
 
@@ -90,10 +90,6 @@ let
       flex
     ]
     ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
-
-    patches = [
-      ./patches/yosys/revert.patch
-    ];
 
     propagatedBuildInputs = [
       tcl
