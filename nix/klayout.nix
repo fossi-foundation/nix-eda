@@ -37,8 +37,8 @@
   fetchurl,
   buildEnv,
   makeBinaryWrapper,
-  version ? "0.30.8",
-  sha256 ? "sha256-aNg6IV8wZyZQE2Hso9EpEgIxicno3zbP8I3yIgu0rnM=",
+  version ? "0.30.9",
+  sha256 ? "sha256-Gt1DeSPW/+8bpsj5OFj7bm9GNuIk4IcQUAWNqRJCxkc=",
   # Python environments
   klayout,
   buildPythonEnvForInterpreter,
@@ -59,7 +59,6 @@ clangStdenv.mkDerivation {
 
   patches = [
     ./patches/klayout/abspath.patch
-    ./patches/klayout/rdb_cell_mapping.patch
   ];
 
   postPatch = ''
