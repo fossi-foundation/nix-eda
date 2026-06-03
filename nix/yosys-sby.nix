@@ -27,8 +27,8 @@
   boolector,
   z3,
   yices,
-  version ? "0.65",
-  sha256 ? "sha256-iNHFj/H53PW0NVyNWRKQjVTRP/fWxglPN+kj38fiQew=",
+  version ? "0.66",
+  sha256 ? "sha256-SrnapPqQ/bAcTbuvc/P+OuFqiPKtUIPqykzEU6d4VE4=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-sby";
