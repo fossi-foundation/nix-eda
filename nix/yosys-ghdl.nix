@@ -25,11 +25,15 @@
   fetchFromGitHub,
   python3,
   ghdl-bin,
+  # always pick the revision closest to ghdl.version's release date
+  # recall: ghdl.version is synced with the one in nixpkgs
   rev ? "233dffbde92bb7fe8405712a3e78d66075ccda00",
   rev-date ? "2025-10-07",
   sha256 ? "sha256-wUJajkn0ObJIWGSK6WlDRSTWw0gJ1YpQjbUhNXFkJxU=",
 }:
 yosys.stdenv.mkDerivation {
+  __structuredAttrs = true; # because of space in makeFlags
+
   pname = "yosys-ghdl";
   version = rev-date;
 
@@ -50,6 +54,7 @@ yosys.stdenv.mkDerivation {
 
   makeFlags = [
     "VER_HASH=${rev}"
+    "CFLAGS=-Wno-error=unused -O2"
   ];
 
   installPhase = ''
