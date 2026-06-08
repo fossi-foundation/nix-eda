@@ -36,10 +36,12 @@
   zlib,
   fetchurl,
   fetchGitHubSnapshot,
+  cmake,
+  ninja,
   bash,
   version ? "0.66",
-  rev ? null,
-  sha256 ? "sha256-ulZ+p/uxKH6Zau+PIP6QL2/UCFk6pQz66orgyQFauHI=",
+  rev ? "cc9692caab049f5cfbf3f84c64a74d11b6e4e5dc",
+  sha256 ? "sha256-p+l0ao+uLLOt467wTvvxKpBkUelz9WS1v/eh1/5EM8k=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
@@ -55,6 +57,7 @@ let
       click
       setuptools
       wheel
+      build
     ]
   );
   site-packages = yosys-python3-env.sitePackages;
@@ -88,6 +91,8 @@ let
       pkg-config
       bison
       flex
+      cmake
+      ninja
     ]
     ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
@@ -160,29 +165,13 @@ let
       runHook postUnpack
     '';
 
-    configurePhase = ''
-      runHook preConfigure
-      CC=clang CXX=clang++ make config-clang
-      runHook postConfigure
-    '';
-
-    makeFlags = [
-      "PRETTY=0"
-      "PREFIX=${placeholder "out"}"
-      "ENABLE_READLINE=0"
-      "ENABLE_EDITLINE=1"
-      "ENABLE_YOSYS=1"
-      "ENABLE_PYOSYS=1"
-      "PYTHON_DESTDIR=${placeholder "python"}/${site-packages}"
-      "PYOSYS_USE_UV=0"
+    cmakeFlags = [
+      "-DYOSYS_WITH_PYTHON:BOOL=ON"
+      "-DYOSYS_INSTALL_PYTHON:BOOL=ON"
+      "-DYOSYS_INSTALL_PYTHON_SITEDIR=${builtins.placeholder "python"}"
     ];
 
-    postInstall = ''
-      python3 ./setup.py dist_info -o $python/${site-packages}
-    '';
-
     doCheck = false;
-    enableParallelBuilding = true;
 
     meta = {
       description = "Yosys Open SYnthesis Suite";
