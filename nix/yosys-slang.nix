@@ -21,16 +21,16 @@
 {
   lib,
   yosys,
-  clang18Stdenv, # Need C++20
+  clangStdenv,
   fetchGitHubSnapshot,
   cmake,
   fmt,
   jq,
   rev ? "35de04061a71c6260f5879ae13855937baad58e1",
   rev-date ? "2026-05-30",
-  hash ? "sha256-ua6Q3pK7Q5ccvsXoAeGWbeJMauf+WzUImW9CRjQcH/c=",
+  hash ? "sha256-JvWzdfPVQ6FqwrpWgd2zLB4X77JFajMr7zfPnEkoARc=",
 }:
-clang18Stdenv.mkDerivation {
+clangStdenv.mkDerivation {
   name = "yosys-slang";
   version = rev-date;
   dylibs = [ "slang" ];

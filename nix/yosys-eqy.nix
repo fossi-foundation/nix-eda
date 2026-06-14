@@ -25,7 +25,7 @@
   yosys,
   libedit,
   libbsd,
-  bitwuzla,
+  oss-cad-suite-bitwuzla,
   zlib,
   yosys-sby,
   makeBinaryWrapper,
@@ -61,7 +61,7 @@ yosys.stdenv.mkDerivation (finalAttrs: {
     yosys
     libedit
     libbsd
-    bitwuzla
+    oss-cad-suite-bitwuzla
     zlib
     yosys-sby
     yosys.python3-env

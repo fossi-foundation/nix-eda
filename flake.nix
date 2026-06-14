@@ -21,7 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
   };
   outputs =
     {
@@ -62,12 +62,7 @@
               callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
             in
             {
-              pybind11_3 = callPythonPackage ./nix/pybind11_3.nix { };
               cocotb = callPythonPackage ./nix/cocotb.nix { };
-              kfactory_1 = callPythonPackage ./nix/kfactory_1.nix { };
-              gdsfactory = callPythonPackage ./nix/gdsfactory.nix { };
-              gdstk = callPythonPackage ./nix/gdstk.nix { };
-              tclint = callPythonPackage ./nix/tclint.nix { };
               antlr4_9-runtime = callPythonPackage ./nix/python3-antlr4-runtime.nix {
                 antlr4 = pkgs'.antlr4_9;
               };
@@ -80,8 +75,8 @@
             in
             {
               # Dependencies
-              ## Newer versions have worse performance with Yosys
-              bitwuzla = callPackage ./nix/bitwuzla.nix { };
+              ## https://github.com/YosysHQ/oss-cad-suite-build/issues/87
+              oss-cad-suite-bitwuzla = callPackage ./nix/oss-cad-suite-bitwuzla.nix { };
 
               ## Cairo X11 on Mac
               cairo = pkgs.cairo.override {
@@ -96,7 +91,7 @@
                 }
               );
 
-              ## repack ghdl binaries
+              ## repack ghdl binaries where possible
               ## rationale: gnat is terribly broken in nixpkgs and i can't figure
               ##            out how to fix it.
               libgnat-bin = callPackage ./nix/libgnat-bin.nix { };
@@ -109,19 +104,26 @@
               ngspice = callPackage ./nix/ngspice.nix { };
               klayout = callPackage ./nix/klayout.nix { };
               klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
-              #
-              iverilog = callPackage ./nix/iverilog.nix { };
               klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix { };
               tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
               tk-x11 = callPackage ./nix/tk-x11.nix { };
               verilator = callPackage ./nix/verilator.nix { verilator = pkgs.verilator; };
               xschem = callPackage ./nix/xschem.nix { };
-              xyce = callPackage ./nix/xyce.nix { };
+              xyce = pkgs.xyce.overrideAttrs(attrs': attrs: {
+                meta.platforms = lib.platforms.linux;
+                meta.broken = false;
+              });
               yosys = callPackage ./nix/yosys.nix { };
               yosys-sby = callPackage ./nix/yosys-sby.nix { };
               yosys-eqy = callPackage ./nix/yosys-eqy.nix { };
               yosys-slang = callPackage ./nix/yosys-slang.nix { };
-              yosys-ghdl = callPackage ./nix/yosys-ghdl.nix { };
+              yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
+                ghdl' =
+                  if (lib.lists.elem pkgs.stdenv.hostPlatform.system pkgs'.ghdl-bin.meta.platforms) then
+                    pkgs'.ghdl-bin
+                  else
+                    pkgs'.ghdl-llvm;
+              };
             }
           )
           (self.composePythonOverlay (
@@ -161,7 +163,7 @@
               yosys-eqy
               yosys-slang
             ]
-            ++ lib.optionals (lib.lists.any (el: el == system) pkgs.yosys-ghdl.meta.platforms) [ yosys-ghdl ]
+            ++ lib.optionals (lib.lists.elem system ["aarch64-darwin" "x86_64-linux" "x86_64-darwin"]) [ yosys-ghdl ]
           );
           inherit (pkgs)
             bitwuzla
@@ -183,9 +185,6 @@
             yosys-ghdl
             ;
           inherit (pkgs.python3.pkgs)
-            gdsfactory
-            gdstk
-            tclint
             cocotb
             ;
         }

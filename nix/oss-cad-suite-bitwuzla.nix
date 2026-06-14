@@ -38,14 +38,23 @@
   cryptominisat,
   zlib,
   pkg-config,
-  rev ? "3bc0f9f1aca04afabe1aff53dd0937924618b2ad",
-  rev-date ? "2022-10-03",
-  sha256 ? "sha256-UXZERl7Nedwex/oUrcf6/GkDSgOQ537WDYm117RfvWo=",
+  rev ? "6e46391816b4baf8c9fc0b8c0c1d2fbe63b6f30e",
+  rev-date ? "2021-11-15",
+  sha256 ? "sha256-FtJJgOXI0cFJO/nt/H8dLuldwT0gocc+DpaoqDmMTbc=",
   # "*** internal error in 'lglib.c': watcher stack overflow" on aarch64-linux
   withLingeling ? !stdenv.hostPlatform.isAarch64,
 }:
+let
+  cadical' = cadical.override { version = "2.1.3"; };
+  symfpu' = symfpu.overrideAttrs (
+    attrs': attrs: {
+      __intentionallyOverridingVersion = true;
+      version = "0-unstable-2019-05-17";
+    }
+  );
+in
 stdenv.mkDerivation (self: {
-  pname = "bitwuzla";
+  pname = "oss-cad-suite-bitwuzla";
   version = "unstable-${rev-date}";
 
   src = fetchFromGitHub {
@@ -60,12 +69,12 @@ stdenv.mkDerivation (self: {
     pkg-config
   ];
   buildInputs = [
-    cadical
+    cadical'
     cryptominisat
     picosat
     minisat
     btor2tools
-    symfpu
+    symfpu'
     gmp
     zlib
   ]

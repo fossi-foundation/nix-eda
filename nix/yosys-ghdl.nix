@@ -24,12 +24,12 @@
   yosys,
   fetchFromGitHub,
   python3,
-  ghdl-bin,
+  ghdl',
   # always pick the revision closest to ghdl.version's release date
   # recall: ghdl.version is synced with the one in nixpkgs
-  rev ? "233dffbde92bb7fe8405712a3e78d66075ccda00",
-  rev-date ? "2025-10-07",
-  sha256 ? "sha256-wUJajkn0ObJIWGSK6WlDRSTWw0gJ1YpQjbUhNXFkJxU=",
+  rev ? "07a30ed39fb6a078f1bf7e9e88ce9ed712380ec2",
+  rev-date ? "2026-01-11",
+  sha256 ? "sha256-LETpUfpIezSxD4A9VYA/OvgN3aZd1YivPe2w973X3nk=",
 }:
 yosys.stdenv.mkDerivation {
   __structuredAttrs = true; # because of space in makeFlags
@@ -49,7 +49,7 @@ yosys.stdenv.mkDerivation {
   buildInputs = [
     yosys
     python3
-    ghdl-bin
+    ghdl'
   ];
 
   makeFlags = [
@@ -76,6 +76,6 @@ yosys.stdenv.mkDerivation {
     description = "VHDL synthesis (based on GHDL and Yosys)";
     homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
     license = lib.licenses.gpl3Plus;
-    inherit (ghdl-bin.meta) platforms;
+    inherit (ghdl'.meta) platforms;
   };
 }

@@ -54,6 +54,7 @@ nix-eda updates:
 
 | nix-eda version | NixOS version | Comments |
 | - | - | - |
+| 7 | 26.05 | fetchGitHubSnapshot now returns a tarball |
 | 6 | 25.11 | |
 | 5 | 25.05 | |
 | 4 | 24.11 | Switched Python overlays to use `pythonPackagesExtensions` |
