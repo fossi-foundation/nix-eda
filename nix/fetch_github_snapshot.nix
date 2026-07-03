@@ -23,6 +23,7 @@
   lib,
   stdenvNoCC,
   python3,
+  gnutar,
   preferLocalBuild ? true,
 }:
 {
@@ -53,7 +54,7 @@ stdenvNoCC.mkDerivation {
       ${rev}
   '';
   installPhase = ''
-    tar \
+    ${gnutar}/bin/tar \
       --create \
       --absolute-names \
       --owner=0 \
@@ -63,6 +64,7 @@ stdenvNoCC.mkDerivation {
       --sort=name \
       --mtime="@$SOURCE_DATE_EPOCH" \
       --mode=ug+w \
+      --dereference \
       --hard-dereference ${repo} | gzip -n > $out
   '';
   impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ [
