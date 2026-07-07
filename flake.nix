@@ -68,58 +68,64 @@
               };
             }
           ))
+          (pkgs': pkgs: {
+            ## Cairo X11 on Mac
+            cairo = pkgs.cairo.override {
+              x11Support = true;
+            };
+
+            ## IcarusVerilog on Intel Macs works just fine,
+            iverilog = pkgs.iverilog.overrideAttrs { meta.badPlatforms = [ ]; };
+
+            ## slightly worse floating point errors cause ONE of the tests to fail
+            ## on x86_64-darwin
+            qrupdate = pkgs.qrupdate.overrideAttrs (
+              self: super: {
+                doCheck = pkgs.stdenv.hostPlatform.system != "x86_64-darwin";
+              }
+            );
+
+            ## Xyce builds and works just fine on aarch64-linux
+            xyce = pkgs.xyce.overrideAttrs (
+              attrs': attrs: {
+                meta.platforms = lib.platforms.linux;
+                meta.broken = false;
+              }
+            );
+          })
           (
             pkgs': pkgs:
             let
               callPackage = lib.callPackageWith pkgs';
             in
             {
-              # Dependencies
-              ## https://github.com/YosysHQ/oss-cad-suite-build/issues/87
-              oss-cad-suite-bitwuzla = callPackage ./nix/oss-cad-suite-bitwuzla.nix { };
-
-              ## Cairo X11 on Mac
-              cairo = pkgs.cairo.override {
-                x11Support = true;
-              };
-
-              ## slightly worse floating point errors cause ONE of the tests to fail
-              ## on x86_64-darwin
-              qrupdate = pkgs.qrupdate.overrideAttrs (
-                self: super: {
-                  doCheck = pkgs.stdenv.hostPlatform.system != "x86_64-darwin";
-                }
-              );
-
               ## repack ghdl binaries where possible
               ## rationale: gnat is terribly broken in nixpkgs and i can't figure
               ##            out how to fix it.
               libgnat-bin = callPackage ./nix/libgnat-bin.nix { };
               ghdl-bin = callPackage ./nix/ghdl-bin.nix { };
 
-              # Main
+              # Main collection
+              klayout = callPackage ./nix/klayout.nix { };
+              klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
+              klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix { };
               magic = callPackage ./nix/magic.nix { };
               magic-vlsi = pkgs'.magic; # alias, there's a python package called magic
               netgen = callPackage ./nix/netgen.nix { };
               ngspice = callPackage ./nix/ngspice.nix { };
-              klayout = callPackage ./nix/klayout.nix { };
-              klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
-              klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix { };
+              ## https://github.com/YosysHQ/oss-cad-suite-build/issues/87
+              oss-cad-suite-bitwuzla = callPackage ./nix/oss-cad-suite-bitwuzla.nix { };
               tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
               tk-x11 = callPackage ./nix/tk-x11.nix { };
               verilator = callPackage ./nix/verilator.nix { verilator = pkgs.verilator; };
               xschem = callPackage ./nix/xschem.nix { };
-              xyce = pkgs.xyce.overrideAttrs(attrs': attrs: {
-                meta.platforms = lib.platforms.linux;
-                meta.broken = false;
-              });
               yosys = callPackage ./nix/yosys.nix { };
               yosys-sby = callPackage ./nix/yosys-sby.nix { };
               yosys-eqy = callPackage ./nix/yosys-eqy.nix { };
               yosys-slang = callPackage ./nix/yosys-slang.nix { };
               yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
                 ghdl' =
-                  if (lib.lists.elem pkgs.stdenv.hostPlatform.system pkgs'.ghdl-bin.meta.platforms) then
+                  if (lib.meta.availableOn pkgs'.stdenv.hostPlatform pkgs'.ghdl-bin) then
                     pkgs'.ghdl-bin
                   else
                     pkgs'.ghdl-llvm;
@@ -163,10 +169,11 @@
               yosys-eqy
               yosys-slang
             ]
-            ++ lib.optionals (lib.lists.elem system ["aarch64-darwin" "x86_64-linux" "x86_64-darwin"]) [ yosys-ghdl ]
+            ++ lib.optionals (lib.meta.availableOn pkgs.stdenv.hostPlatform yosys-ghdl) [ yosys-ghdl ]
           );
+          bitwuzla = lib.warn "Starting nix-eda 8, packages.${system}.bitwuzla will be removed. For the Yosys-compatible version, use oss-cad-suite-bitwuzla." pkgs.oss-cad-suite-bitwuzla;
           inherit (pkgs)
-            bitwuzla
+            oss-cad-suite-bitwuzla
             ghdl-bin
             iverilog
             klayout

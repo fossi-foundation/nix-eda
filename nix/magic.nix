@@ -58,7 +58,8 @@ clangStdenv.mkDerivation {
     autoconf269
     automake
     m4
-  ] ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
+  ]
+  ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
   buildInputs = [
     libX11

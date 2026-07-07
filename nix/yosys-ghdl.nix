@@ -76,6 +76,9 @@ yosys.stdenv.mkDerivation {
     description = "VHDL synthesis (based on GHDL and Yosys)";
     homepage = "http://ghdl.github.io/ghdl/using/Synthesis.html";
     license = lib.licenses.gpl3Plus;
-    inherit (ghdl'.meta) platforms;
+    platforms = [
+      "x86_64-linux"
+      "aarch64-darwin"
+    ];
   };
 }

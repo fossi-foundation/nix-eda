@@ -107,5 +107,6 @@ stdenv.mkDerivation (self: {
     homepage = "https://bitwuzla.github.io";
     license = lib.licenses.mit;
     platforms = lib.platforms.unix;
+    mainProgram = "bitwuzla";
   };
 })
