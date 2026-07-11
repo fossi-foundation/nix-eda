@@ -24,7 +24,8 @@
   lib,
   clangStdenv,
   fetchFromGitHub,
-  libsForQt5,
+  qt6,
+  qt6Packages,
   which,
   perl,
   python3,
@@ -72,14 +73,14 @@ clangStdenv.mkDerivation {
     (python3.withPackages (ps: with ps; [ setuptools ]))
     ruby
     gnused
-    libsForQt5.wrapQtAppsHook
+    qt6.wrapQtAppsHook
   ];
 
-  buildInputs = with libsForQt5; [
+  buildInputs = with qt6Packages; [
     qtbase
     qtmultimedia
     qttools
-    qtxmlpatterns
+    qt5compat
     curl
     gcc
     libgit2
