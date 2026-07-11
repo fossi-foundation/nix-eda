@@ -23,6 +23,7 @@
   lib,
   stdenvNoCC,
   python3,
+  gnutar,
   preferLocalBuild ? true,
 }:
 {
@@ -30,10 +31,9 @@
   repo,
   rev,
   hash,
-  add-gitcommit ? false,
 }:
 stdenvNoCC.mkDerivation {
-  name = "github-${repo}-${rev}-snapshot";
+  name = "github-${repo}-${rev}-snapshot.tar.gz";
   nativeBuildInputs = [
     (python3.withPackages (
       ps: with ps; [
@@ -43,12 +43,29 @@ stdenvNoCC.mkDerivation {
       ]
     ))
   ];
-  phases = [ "installPhase" ];
-  installPhase = ''
+  phases = [
+    "buildPhase"
+    "installPhase"
+  ];
+  buildPhase = ''
     python3 ${./supporting/download_github_snapshot.py} \
-      ${lib.optionalString add-gitcommit "--add-gitcommit"} --out-dir $out \
+      --add-gitcommit --out-dir ${repo} \
       https://github.com/${owner}/${repo} \
       ${rev}
+  '';
+  installPhase = ''
+    ${gnutar}/bin/tar \
+      --create \
+      --absolute-names \
+      --owner=0 \
+      --group=0 \
+      --numeric-owner \
+      --format=gnu \
+      --sort=name \
+      --mtime="@$SOURCE_DATE_EPOCH" \
+      --mode=ug+w \
+      --dereference \
+      --hard-dereference ${repo} | gzip -n > $out
   '';
   impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ [
     "GITHUB_TOKEN"

@@ -39,7 +39,7 @@
   bash,
   version ? "0.66",
   rev ? null,
-  sha256 ? "sha256-ulZ+p/uxKH6Zau+PIP6QL2/UCFk6pQz66orgyQFauHI=",
+  sha256 ? "sha256-wuufUmGe5+7urSK2Px647yx2GPIpjJOKZROBvHanDE0=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
@@ -51,7 +51,7 @@ let
   yosys-python3-env = python3.withPackages (
     ps: with ps; [
       cxxheaderparser
-      pybind11_3
+      pybind11
       click
       setuptools
       wheel
@@ -69,20 +69,12 @@ let
       "python"
     ];
 
-    src =
-      if rev != null then
-        fetchGitHubSnapshot {
-          owner = "yosyshq";
-          repo = "yosys";
-          inherit rev;
-          hash = sha256;
-          add-gitcommit = true;
-        }
-      else
-        fetchurl {
-          url = "https://github.com/YosysHQ/yosys/releases/download/v${version}/yosys-src.tar.gz";
-          inherit sha256;
-        };
+    src = fetchGitHubSnapshot {
+      owner = "yosyshq";
+      repo = "yosys";
+      rev = if rev == null then "v${version}" else "rev";
+      hash = sha256;
+    };
 
     nativeBuildInputs = [
       pkg-config
@@ -148,17 +140,6 @@ let
         inherit makeBinaryWrapper;
       };
     };
-
-    unpackPhase = ''
-      runHook preUnpack
-      if [ -d ${finalAttrs.src} ]; then
-        cp -r ${finalAttrs.src}/* ${finalAttrs.src}/.* .
-        chmod u+w -R .
-      else
-        tar -xzC . -f ${finalAttrs.src}
-      fi
-      runHook postUnpack
-    '';
 
     configurePhase = ''
       runHook preConfigure

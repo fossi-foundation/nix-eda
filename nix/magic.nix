@@ -23,8 +23,8 @@
 {
   lib,
   clangStdenv,
-  fetchFromGitHub,
-  xorg,
+  fetchGitHubSnapshot,
+  libX11,
   m4,
   ncurses,
   tcl,
@@ -32,50 +32,58 @@
   cairo,
   python3,
   gnused,
-  version ? "8.3.660",
+  darwin,
+  autoconf269,
+  automake,
+  version ? "8.3.674",
   rev ? null,
-  sha256 ? "sha256-5Mdbiimn8bPh2LZquUgObcWRU9JyGhF0YL38Or2RfgA=",
+  sha256 ? "sha256-42Z//Hylpea/OhhffrpM+AnZaWhVQACXjKAjOwE8LEg=",
 }:
 clangStdenv.mkDerivation {
   pname = "magic-vlsi";
   inherit version;
 
-  src = fetchFromGitHub {
+  src = fetchGitHubSnapshot {
     owner = "RTimothyEdwards";
     repo = "magic";
     rev = if rev == null then version else rev;
-    inherit sha256;
+    hash = sha256;
   };
 
   nativeBuildInputs = [
     python3
     gnused
-  ];
+    # autoconf and automake are just to ease development, there's a configure
+    # checked into magic source control
+    autoconf269
+    automake
+    m4
+  ]
+  ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
   buildInputs = [
-    xorg.libX11
-    m4
+    libX11
     ncurses
     tcl
     tk-x11
     cairo
   ];
 
-  configureFlags = [
-    "--with-tcl=${tcl}"
-    "--with-tk=${tk-x11}"
-    "--disable-werror"
-  ];
-
-  NIX_CFLAGS_COMPILE = "-Wno-implicit-function-declaration -Wno-parentheses -Wno-macro-redefined";
-
   preConfigure = ''
     # nix shebang fix
     patchShebangs ./scripts
 
     # "Precompute" git rev-parse HEAD
-    sed -i 's@`git rev-parse HEAD`@${version}@' ./scripts/defs.mak.in
+    substituteInPlace ./scripts/defs.mak.in\
+      --replace-fail '$(shell git rev-parse HEAD)' $(cat .gitcommit)
   '';
+
+  configureFlags = [
+    "--with-tcl=${tcl}"
+    "--with-tk=${tk-x11}"
+  ];
+
+  NIX_CFLAGS_COMPILE = "-std=gnu99 -Wno-deprecated-non-prototype -Wno-implicit-function-declaration -Wno-parentheses -Wno-macro-redefined";
 
   fixupPhase = ''
     sed -i "13iexport CAD_ROOT='$out/lib'" $out/bin/magic
@@ -87,6 +95,6 @@ clangStdenv.mkDerivation {
     description = "VLSI layout tool written in Tcl";
     homepage = "http://opencircuitdesign.com/magic/";
     license = lib.licenses.mit;
-    platforms = with lib.platforms; linux ++ darwin;
+    platforms = lib.platforms.unix;
   };
 }

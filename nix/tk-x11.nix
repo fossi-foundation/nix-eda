@@ -25,7 +25,7 @@
 # This is important for some utilities such as Xschem which expect the X11
 # version of Tk even on macOS.
 {
-  xorg,
+  libX11,
   tk,
 }:
 (tk.override {
@@ -35,12 +35,12 @@
     self: super: {
       configureFlags = super.configureFlags ++ [
         "--with-x"
-        "--x-includes=${xorg.libX11}/include"
-        "--x-libraries=${xorg.libX11}/lib"
+        "--x-includes=${libX11}/include"
+        "--x-libraries=${libX11}/lib"
       ];
 
       propagatedBuildInputs = super.propagatedBuildInputs ++ [
-        xorg.libX11
+        libX11
       ];
     }
   )
