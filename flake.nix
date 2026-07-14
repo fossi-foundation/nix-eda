@@ -106,6 +106,7 @@
               ghdl-bin = callPackage ./nix/ghdl-bin.nix { };
 
               # Main collection
+              kepler-formal = callPackage ./nix/kepler-formal.nix { };
               klayout = callPackage ./nix/klayout.nix { };
               klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
               klayout-gdsfactory = callPackage ./nix/klayout-gdsfactory.nix { };
@@ -176,6 +177,7 @@
             oss-cad-suite-bitwuzla
             ghdl-bin
             iverilog
+            kepler-formal
             klayout
             klayout-gdsfactory
             magic
