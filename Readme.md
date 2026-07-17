@@ -34,8 +34,9 @@ We compile and cache the tools for the following platforms:
     * (+ `python3.pkgs.pyosys` for Python module)
     * (+ some plugins that can be accessed programmatically)
     * (`yosysFull` for all plugins)
-    
-> [!NOTE]  
+* [Kepler-Formal](https://github.com/keplertech/kepler-formal)
+
+> [!NOTE]
 > As of the time of writing, if you're using KLayout and gdsfactory for sky130
 > PCells, the versions of klayout and gdsfactory in nix-eda 5.0.0+ are 
 > incompatible as the PCells are out-of-date.
