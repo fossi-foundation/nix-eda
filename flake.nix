@@ -106,6 +106,7 @@
               ghdl-bin = callPackage ./nix/ghdl-bin.nix { };
 
               # Main collection
+              gdsfill = callPackage ./nix/gdsfill.nix { };
               kepler-formal = callPackage ./nix/kepler-formal.nix { };
               klayout = callPackage ./nix/klayout.nix { };
               klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
@@ -175,6 +176,7 @@
           bitwuzla = lib.warn "Starting nix-eda 8, packages.${system}.bitwuzla will be removed. For the Yosys-compatible version, use oss-cad-suite-bitwuzla." pkgs.oss-cad-suite-bitwuzla;
           inherit (pkgs)
             oss-cad-suite-bitwuzla
+            gdsfill
             ghdl-bin
             iverilog
             kepler-formal
