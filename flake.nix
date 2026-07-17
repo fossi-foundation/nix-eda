@@ -115,6 +115,7 @@
               magic-vlsi = pkgs'.magic; # alias, there's a python package called magic
               netgen = callPackage ./nix/netgen.nix { };
               ngspice = callPackage ./nix/ngspice.nix { };
+              openvaf-r = callPackage ./nix/openvaf-r.nix { };
               ## https://github.com/YosysHQ/oss-cad-suite-build/issues/87
               oss-cad-suite-bitwuzla = callPackage ./nix/oss-cad-suite-bitwuzla.nix { };
               tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
