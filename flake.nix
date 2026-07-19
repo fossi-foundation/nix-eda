@@ -176,7 +176,6 @@
           );
           bitwuzla = lib.warn "Starting nix-eda 8, packages.${system}.bitwuzla will be removed. For the Yosys-compatible version, use oss-cad-suite-bitwuzla." pkgs.oss-cad-suite-bitwuzla;
           inherit (pkgs)
-            oss-cad-suite-bitwuzla
             gdsfill
             ghdl-bin
             iverilog
@@ -186,6 +185,8 @@
             magic
             magic-vlsi
             netgen
+            openvaf-r
+            oss-cad-suite-bitwuzla
             tk-x11
             verilator
             xschem

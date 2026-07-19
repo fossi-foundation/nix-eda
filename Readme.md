@@ -36,7 +36,6 @@ We compile and cache the tools for the following platforms:
     * (`yosysFull` for all plugins)
 * [Kepler-Formal](https://github.com/keplertech/kepler-formal)
 * [OpenVAF Reloaded](https://github.com/OpenVAF/OpenVAF-Reloaded)
-    * Linux only.
 
 > [!NOTE]
 > As of the time of writing, if you're using KLayout and gdsfactory for sky130
