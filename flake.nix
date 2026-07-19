@@ -115,6 +115,7 @@
               magic-vlsi = pkgs'.magic; # alias, there's a python package called magic
               netgen = callPackage ./nix/netgen.nix { };
               ngspice = callPackage ./nix/ngspice.nix { };
+              openvaf-r = callPackage ./nix/openvaf-r.nix { };
               ## https://github.com/YosysHQ/oss-cad-suite-build/issues/87
               oss-cad-suite-bitwuzla = callPackage ./nix/oss-cad-suite-bitwuzla.nix { };
               tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
@@ -175,7 +176,6 @@
           );
           bitwuzla = lib.warn "Starting nix-eda 8, packages.${system}.bitwuzla will be removed. For the Yosys-compatible version, use oss-cad-suite-bitwuzla." pkgs.oss-cad-suite-bitwuzla;
           inherit (pkgs)
-            oss-cad-suite-bitwuzla
             gdsfill
             ghdl-bin
             iverilog
@@ -185,6 +185,8 @@
             magic
             magic-vlsi
             netgen
+            openvaf-r
+            oss-cad-suite-bitwuzla
             tk-x11
             verilator
             xschem
