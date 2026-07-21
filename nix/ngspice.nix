@@ -28,7 +28,8 @@
   bison,
   fftw,
   withNgshared ? true,
-  xorg,
+  libxaw,
+  libxext,
   autoconf,
   automake,
   libtool,
@@ -56,8 +57,8 @@ clangStdenv.mkDerivation {
 
   buildInputs = [
     fftw
-    xorg.libXaw
-    xorg.libXext
+    libxaw
+    libxext
     readline
     llvmPackages.openmp
   ];
