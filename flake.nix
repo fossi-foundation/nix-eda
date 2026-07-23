@@ -121,6 +121,7 @@
               tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
               tk-x11 = callPackage ./nix/tk-x11.nix { };
               verilator = callPackage ./nix/verilator.nix { verilator = pkgs.verilator; };
+              gtkwave = callPackage ./nix/gtkwave.nix { };
               xschem = callPackage ./nix/xschem.nix { };
               yosys = callPackage ./nix/yosys.nix { };
               yosys-sby = callPackage ./nix/yosys-sby.nix { };
