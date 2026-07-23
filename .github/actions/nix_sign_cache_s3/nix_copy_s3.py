@@ -29,9 +29,12 @@ https://cachix.nixos.org: See https://github.com/NixOS/nix/issues/13333.
 
 This script is intended as a stop-gap measure until this is implemented.
 
-This script requires Python 3.8+ and the AWS CLI to be installed (with
-credentials configured in the environment.)
+This script requires:
+- Python 3.8+ with httpx
+- the AWS CLI to be installed (with credentials configured in the environment.)
 """
+import httpx
+
 import io
 import os
 import re
@@ -44,8 +47,6 @@ import subprocess
 import logging
 from pathlib import Path
 from urllib.parse import urlparse
-from urllib.error import HTTPError
-from urllib.request import Request, urlopen
 from typing import Any, List, Dict, Set
 
 ws_rx = re.compile(r"\s+")
@@ -55,7 +56,7 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 def parse_narinfo(file: io.TextIOWrapper):
     result: Dict[str, Any] = {}
@@ -83,19 +84,17 @@ class NixPathInfoError(RuntimeError):
         super().__init__(*args)
 
     @classmethod
-    def from_stderr(Self, stderr: io.TextIOWrapper):
+    def from_stderr(Self, stderr: str):
         does_not_exist = re.compile(r"error: path '(\S+?)' does not exist in the store")
         unavailable = re.compile(r"Refusing to evaluate package '(\S+?)'")
 
-        stderr_str = stderr.read()
-
-        for line in stderr_str.splitlines():
+        for line in stderr.splitlines():
             if dne_match := does_not_exist.search(line):
                 return NixPathNotFound(dne_match[1])
             if unavailable_match := unavailable.search(line):
                 return NixDerivationUnavailable(unavailable_match[1])
 
-        return Self(f"unexpected error occurred:\n" + stderr_str)
+        return Self(f"unexpected error occurred:\n" + stderr)
 
 
 class NixDerivationUnavailable(NixPathInfoError):
@@ -137,10 +136,10 @@ def nix_pathinfo_parse(
         stderr=subprocess.PIPE,
         encoding=encoding,
     )
-    process.wait()
-    if process.returncode:
-        raise NixPathInfoError.from_stderr(process.stderr)
-    return json.load(process.stdout)
+    stdout, stderr = process.communicate()
+    if process.returncode != 0:
+        raise NixPathInfoError.from_stderr(stderr)
+    return json.loads(stdout)
 
 
 def paths_from_path_info(path_info_raw: Any):
@@ -159,20 +158,17 @@ def filter_store_paths_by_remote(
     remote="https://cache.nixos.org"
 ):
     remote = remote.rstrip("/")
-    in_remote = []
+    filtered = []
+    client = httpx.Client()
     for path in store_paths:
         p = Path(path)
         name = p.name
         hash, _ = name.split("-", maxsplit=1)
         narinfo_path = f"{remote}/{hash}.narinfo"
-        req = Request(narinfo_path)
-        try:
-            with urlopen(req) as res:
-                if (res.getcode() // 100) == 2:
-                    in_remote.append(path)
-        except HTTPError:
-            continue
-    return in_remote
+        res = client.request("HEAD", narinfo_path)
+        if (res.status_code // 100) == 2:
+            filtered.append(path)
+    return filtered
 
 
 def main(text_args):

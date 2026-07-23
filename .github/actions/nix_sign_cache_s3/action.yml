@@ -62,7 +62,10 @@ runs:
       shell: ${{ inputs.shell }}
       if: inputs.s3_bucket_name != '' && inputs.nix_public_key != '' && inputs.nix_private_key != '' && inputs.aws_region != '' && inputs.aws_access_key_id != '' && inputs.aws_secret_access_key != ''
       run: |
-        python3 ${{ github.action_path }}/nix_copy_s3.py \
+        TEMP_VENV=$(mktemp -d)
+        python3 -m venv $TEMP_VENV
+        $TEMP_VENV/bin/python3 -m pip install --upgrade httpx
+        $TEMP_VENV/bin/python3 ${{ github.action_path }}/nix_copy_s3.py \
           --upstream-cache "https://cache.nixos.org" \
           --upstream-cache "TARGET_HTTPS" \
           --to-s3-bucket "${{ inputs.s3_bucket_name }}" \
