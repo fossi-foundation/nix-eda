@@ -42,8 +42,11 @@ import sys
 import tempfile
 import subprocess
 import logging
-from typing import Any, List, Dict, Set
+from pathlib import Path
 from urllib.parse import urlparse
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+from typing import Any, List, Dict, Set
 
 ws_rx = re.compile(r"\s+")
 
@@ -151,6 +154,26 @@ def paths_from_path_info(path_info_raw: Any):
         )
         return None
 
+def filter_store_paths_by_remote(
+    *store_paths,
+    remote="https://cache.nixos.org"
+):
+    remote = remote.rstrip("/")
+    in_remote = []
+    for path in store_paths:
+        p = Path(path)
+        name = p.name
+        hash, _ = name.split("-", maxsplit=1)
+        narinfo_path = f"{remote}/{hash}.narinfo"
+        req = Request(narinfo_path)
+        try:
+            with urlopen(req) as res:
+                if (res.getcode() // 100) == 2:
+                    in_remote.append(path)
+        except HTTPError:
+            continue
+    return in_remote
+
 
 def main(text_args):
     args = argparse.ArgumentParser()
@@ -219,15 +242,10 @@ def main(text_args):
         if len(paths_to_query):
             logging.info("Checking for paths upstream…")
             for cache in upstream_caches:
-                upstream_cache_info_raw = nix_pathinfo_parse(
+                upstream_cache_paths = filter_store_paths_by_remote(
                     *paths_to_query,
-                    eval_store="",
-                    store=cache,
+                    remote=cache,
                 )
-                upstream_cache_paths = paths_from_path_info(upstream_cache_info_raw)
-                if upstream_cache_paths is None:
-                    continue
-
                 paths_in_upstream_caches.update(
                     {path: cache for path in upstream_cache_paths}
                 )
