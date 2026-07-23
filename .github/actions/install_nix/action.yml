@@ -49,3 +49,7 @@ runs:
         sudo /usr/libexec/PlistBuddy -c "Add :EnvironmentVariables:GITHUB_TOKEN string ${{ inputs.github_token }}" /Library/LaunchDaemons/org.nixos.nix-daemon.plist
         sudo launchctl bootout system/org.nixos.nix-daemon
         sudo launchctl load -w /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+    - name: Print Diagnostic Info
+      shell: bash
+      run: |
+        nix-shell -p nix-info --run "nix-info -m"

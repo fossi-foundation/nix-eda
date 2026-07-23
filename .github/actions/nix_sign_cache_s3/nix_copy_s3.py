@@ -127,8 +127,7 @@ def nix_pathinfo_parse(
         *(("--store", store) if store is not None else ()),
         *paths,
     ]
-    if os.getenv("VERBOSE", "0") == "1":
-        print(f"$ {shlex.join(cmd)}", file=sys.stderr)
+    logging.info(f"\t\t> {shlex.join(cmd)}")
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
