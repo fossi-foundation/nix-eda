@@ -75,13 +75,70 @@ def parse_narinfo(file: io.TextIOWrapper):
     return result
 
 
-def check_json_out(args: List[str], **kwargs):
-    if "encoding" not in kwargs:
-        kwargs["encoding"] = "utf8"
+class NixPathInfoError(RuntimeError):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+    @classmethod
+    def from_stderr(Self, stderr: io.TextIOWrapper):
+        does_not_exist = re.compile(r"error: path '(\S+?)' does not exist in the store")
+        unavailable = re.compile(r"Refusing to evaluate package '(\S+?)'")
+
+        stderr_str = stderr.read()
+
+        for line in stderr_str.splitlines():
+            if dne_match := does_not_exist.search(line):
+                return NixPathNotFound(dne_match[1])
+            if unavailable_match := unavailable.search(line):
+                return NixDerivationUnavailable(unavailable_match[1])
+
+        return Self(f"unexpected error occurred:\n" + stderr_str)
+
+
+class NixDerivationUnavailable(NixPathInfoError):
+    def __init__(self, name):
+        self.name = name
+        super().__init__(
+            f"derivation '{self.name}' is not available on the requested hostPlatform"
+        )
+
+
+class NixPathNotFound(NixPathInfoError):
+    def __init__(self, path):
+        self.path = path
+        super().__init__(
+            f"path '{self.path}' not found in nix store, likely failed to build"
+        )
+
+
+def nix_pathinfo_parse(
+    *paths,
+    recursive=True,
+    encoding="utf8",
+    eval_store: str | None = None,
+    store: str | None = None,
+):
+    cmd = [
+        "nix",
+        "path-info",
+        "--json",
+        *(recursive * ("--recursive",)),
+        *(("--eval-store", eval_store) if eval_store is not None else ()),
+        *(("--store", store) if store is not None else ()),
+        *paths,
+    ]
     if os.getenv("VERBOSE", "0") == "1":
-        print(f"$ {shlex.join(args)}", file=sys.stderr)
-    out_str = subprocess.check_output(args, **kwargs)
-    return json.loads(out_str)
+        print(f"$ {shlex.join(cmd)}", file=sys.stderr)
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        encoding=encoding,
+    )
+    process.wait()
+    if process.returncode:
+        raise NixPathInfoError.from_stderr(process.stderr)
+    return json.load(process.stdout)
 
 
 def paths_from_path_info(path_info_raw: Any):
@@ -143,23 +200,10 @@ def main(text_args):
 
         # 0. List all paths that this flake output depends on, the "closure"
         try:
-            closure_raw: Any = check_json_out(
-                ["nix", "path-info", "--recursive", "--json", flake_output],
-                stderr=subprocess.PIPE,
-            )
-        except subprocess.CalledProcessError as e:
-            if "is not valid" in e.stderr:
-                logging.warning(
-                    f"Failed to get store paths for {flake_output} -- assuming broken, skipping…"
-                )
-                continue
-            elif "does not exist in the store" in e.stderr:
-                logging.warning(
-                    f"{flake_output} does not exist in the store, possibly unbuilt. Skipping…"
-                )
-                continue
-            else:
-                raise e from None
+            closure_raw = nix_pathinfo_parse(flake_output)
+        except (NixPathNotFound, NixDerivationUnavailable) as e:
+            logging.warning(f"Skipping {flake_output}: {e}")
+            continue
 
         closure = paths_from_path_info(closure_raw)
         if closure is None:
@@ -176,18 +220,10 @@ def main(text_args):
         if len(paths_to_query):
             logging.info("Checking for paths upstream…")
             for cache in upstream_caches:
-                upstream_cache_info_raw = check_json_out(
-                    [
-                        "nix",
-                        "path-info",
-                        "--json",
-                        "--eval-store",
-                        "",
-                        "--store",
-                        cache,
-                        *paths_to_query,
-                    ],
-                    stderr=subprocess.PIPE,
+                upstream_cache_info_raw = nix_pathinfo_parse(
+                    *paths_to_query,
+                    eval_store="",
+                    store=cache,
                 )
                 upstream_cache_paths = paths_from_path_info(upstream_cache_info_raw)
                 if upstream_cache_paths is None:
