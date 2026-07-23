@@ -107,6 +107,7 @@
 
               # Main collection
               gdsfill = callPackage ./nix/gdsfill.nix { };
+              gtkwave = callPackage ./nix/gtkwave.nix { gtkwave = pkgs.gtkwave; };
               kepler-formal = callPackage ./nix/kepler-formal.nix { };
               klayout = callPackage ./nix/klayout.nix { };
               klayout-app = pkgs'.klayout; # alias, there's a python package called klayout (related) (thats also this)
@@ -178,6 +179,7 @@
           inherit (pkgs)
             gdsfill
             ghdl-bin
+            gtkwave
             iverilog
             kepler-formal
             klayout

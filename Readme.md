@@ -17,16 +17,19 @@ We compile and cache the tools for the following platforms:
 | macOS (arm64) | `aarch64-darwin` |
 
 ## Tools Included
-* [Magic](http://opencircuitdesign.com/magic)
-* [Netgen](http://opencircuitdesign.com/netgen)
-* [ngspice](https://ngspice.sourceforge.io)
+* [cocotb](https://www.cocotb.org/)
+* [Kepler-Formal](https://github.com/keplertech/kepler-formal)
 * [KLayout](https://klayout.de)
     * (+ `.python3.pkgs.klayout` for Python module)
 * [GDSFactory](https://github.com/gdsfactory/gdsfactory)
     * (+ `klayout-gdsfactory` as a shorthand for an environment with both installed)
-* [Verilator](https://verilator.org)
+* [GTKWave](https://github.com/gtkwave/gtkwave) (LTS branch)
 * [Icarus Verilog](https://github.com/steveicarus/iverilog)
-* [cocotb](https://www.cocotb.org/)
+* [Magic](http://opencircuitdesign.com/magic)
+* [Netgen](http://opencircuitdesign.com/netgen)
+* [ngspice](https://ngspice.sourceforge.io)
+* [OpenVAF Reloaded](https://github.com/OpenVAF/OpenVAF-Reloaded)
+* [Verilator](https://verilator.org)
 * [Xschem](https://xschem.sourceforge.io/stefan/index.html)
 * [Xyce](https://github.com/xyce/xyce)
     * Linux only.
@@ -34,8 +37,6 @@ We compile and cache the tools for the following platforms:
     * (+ `python3.pkgs.pyosys` for Python module)
     * (+ some plugins that can be accessed programmatically)
     * (`yosysFull` for all plugins)
-* [Kepler-Formal](https://github.com/keplertech/kepler-formal)
-* [OpenVAF Reloaded](https://github.com/OpenVAF/OpenVAF-Reloaded)
 
 > [!NOTE]
 > As of the time of writing, if you're using KLayout and gdsfactory for sky130
