@@ -17,9 +17,9 @@ jobs:
               nix_double: "x86_64-linux",
             },
             {
-              name: "Ubuntu 22.04",
+              name: "Ubuntu 24.04",
               family: "linux",
-              runner: "ubuntu-22.04-arm",
+              runner: "ubuntu-24.04-arm",
               archs: "aarch64",
               nix_double: "aarch64-linux",
             },
@@ -41,7 +41,7 @@ jobs:
     name: Nix Builds | ${{ matrix.os.name }} | ${{ matrix.os.archs }}
     runs-on: ${{ matrix.os.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install Nix (+ add GitHub Token to Environment)
         uses: ./.github/actions/install_nix
         with:
