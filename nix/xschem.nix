@@ -32,9 +32,9 @@
   pkg-config,
   tcl,
   tk-x11,
-  version ? "3.4.7", # Run 'git describe' on the xschem repo if no tag is used
-  rev ? null,
-  sha256 ? "sha256-ye97VJQ+2F2UbFLmGrZ8xSK9xFeF+Yies6fJKurPOD0=",
+  version ? "3.4.8RC", # Run 'git describe' on the xschem repo if no tag is used
+  rev ? "ff2f4824c1a24e158d218f44db11cc682b4881c8",
+  sha256 ? "sha256-0uYrN7UQBkLcVqycf+m7tJuPC73Z5gE7xk3hlBSRTvE=",
 }:
 stdenv.mkDerivation {
   pname = "xschem";
