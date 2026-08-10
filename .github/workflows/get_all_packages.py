@@ -13,7 +13,7 @@ def run(purpose, *args):
     process.wait()
     if process.returncode:
         stderr = process.stderr.read()
-        if "marked as broken" in stderr:
+        if "marked as broken" in stderr or "This package is broken" in stderr:
             print(
                 f"Warning: failed to {purpose} (one or more dependencies marked as broken on current hostPlatform)",
                 file=sys.stderr,
