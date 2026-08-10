@@ -171,7 +171,6 @@
             [
               yosys-sby
               yosys-eqy
-              yosys-slang
             ]
             ++ lib.optionals (lib.meta.availableOn pkgs.stdenv.hostPlatform yosys-ghdl) [ yosys-ghdl ]
           );
@@ -196,7 +195,6 @@
             yosys
             yosys-sby
             yosys-eqy
-            yosys-slang
             yosys-ghdl
             ;
           inherit (pkgs.python3.pkgs)
