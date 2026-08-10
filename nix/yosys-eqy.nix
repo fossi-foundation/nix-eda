@@ -25,12 +25,12 @@
   yosys,
   libedit,
   libbsd,
-  oss-cad-suite-bitwuzla,
+  bitwuzla,
   zlib,
   yosys-sby,
   makeBinaryWrapper,
-  version ? "0.66",
-  sha256 ? "sha256-a2wc0OCVyl7N01g9MV3rnSay5c0jy8YCDB0d4eCNTr4=",
+  version ? "0.68",
+  sha256 ? "sha256-9N5hztnCziHiIt7fEjTiM3lWZy27TkHCLxqmfQzQiwg=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-eqy";
@@ -61,7 +61,7 @@ yosys.stdenv.mkDerivation (finalAttrs: {
     yosys
     libedit
     libbsd
-    oss-cad-suite-bitwuzla
+    bitwuzla
     zlib
     yosys-sby
     yosys.python3-env

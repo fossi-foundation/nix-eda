@@ -126,7 +126,9 @@
               yosys = callPackage ./nix/yosys.nix { };
               yosys-sby = callPackage ./nix/yosys-sby.nix { };
               yosys-eqy = callPackage ./nix/yosys-eqy.nix { };
-              yosys-slang = callPackage ./nix/yosys-slang.nix { };
+              yosys-slang =
+                lib.warn "yosys-slang will be removed starting nix-eda 8.0.0 as slang is now built into Yosys."
+                  (callPackage ./nix/yosys-slang.nix { });
               yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
                 ghdl' =
                   if (lib.meta.availableOn pkgs'.stdenv.hostPlatform pkgs'.ghdl-bin) then
@@ -193,9 +195,10 @@
             xschem
             xyce
             yosys
-            yosys-sby
             yosys-eqy
             yosys-ghdl
+            yosys-slang
+            yosys-sby
             ;
           inherit (pkgs.python3.pkgs)
             cocotb
