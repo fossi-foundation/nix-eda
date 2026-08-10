@@ -24,11 +24,13 @@
   clangStdenv,
   fetchGitHubSnapshot,
   cmake,
-  fmt,
   jq,
-  rev ? "35de04061a71c6260f5879ae13855937baad58e1",
-  rev-date ? "2026-05-30",
-  hash ? "sha256-JvWzdfPVQ6FqwrpWgd2zLB4X77JFajMr7zfPnEkoARc=",
+  fmt,
+  boost,
+  tomlplusplus,
+  rev ? "e2829839afc62961d704123f30ed46e75477f33c",
+  rev-date ? "2026-08-03",
+  hash ? "sha256-ovLFi/1p9fOzWD6dEkhSO8SHcLfjOmBLqax5zB2JXHk=",
 }:
 clangStdenv.mkDerivation {
   name = "yosys-slang";
@@ -37,22 +39,27 @@ clangStdenv.mkDerivation {
 
   src = fetchGitHubSnapshot {
     owner = "povik";
-    repo = "yosys-slang";
+    repo = "sv-elab";
     inherit rev;
     inherit hash;
   };
 
   cmakeFlags = [
     "-DYOSYS_CONFIG=${yosys}/bin/yosys-config"
+    "-DSLANG_USE_SYSTEM_BOOST:BOOL=ON"
     "-DFMT_INSTALL:BOOL=OFF"
   ];
 
   nativeBuildInputs = [
     cmake
     jq
-  ]; # ninja doesn't work, cba to debug why
+    # ninja is broken and idk why
+  ];
+
   buildInputs = [
     yosys
+    boost
+    tomlplusplus
     yosys.python3-env
     fmt
   ];
@@ -67,9 +74,6 @@ clangStdenv.mkDerivation {
   '';
 
   doCheck = true;
-
-  # Release, at least in Nix, is broken. Can't figure out why entirely.
-  cmakeBuildType = "Debug";
 
   installPhase = ''
     runHook preBuild
