@@ -88,5 +88,6 @@ clangStdenv.mkDerivation {
     license = [ lib.licenses.mit ];
     homepage = "https://github.com/povik/yosys-slang";
     platforms = lib.platforms.all;
+    badPlatforms = [ "aarch64-linux" ];
   };
 }
