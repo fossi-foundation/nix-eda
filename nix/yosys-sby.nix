@@ -27,8 +27,8 @@
   boolector,
   z3,
   yices,
-  version ? "0.66",
-  sha256 ? "sha256-SrnapPqQ/bAcTbuvc/P+OuFqiPKtUIPqykzEU6d4VE4=",
+  version ? "0.68",
+  sha256 ? "sha256-WRZp4+gwUgDKCWAdBK/36ArM2KFGyLBZ20S32k7YN+8=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-sby";
@@ -66,9 +66,10 @@ yosys.stdenv.mkDerivation (finalAttrs: {
     runHook postPatch
   '';
 
-  doCheck = false; # it just takes forever man
   checkPhase = ''
+    runHook preCheck
     make test SBY_MAIN=$src/sbysrc/sby.py
+    runHook postCheck
   '';
 
   makeWrapperArgs = [

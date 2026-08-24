@@ -36,10 +36,12 @@
   zlib,
   fetchurl,
   fetchGitHubSnapshot,
+  cmake,
+  ninja,
   bash,
-  version ? "0.66",
+  version ? "0.68",
   rev ? null,
-  sha256 ? "sha256-wuufUmGe5+7urSK2Px647yx2GPIpjJOKZROBvHanDE0=",
+  sha256 ? "sha256-U4mBg5oT9jNvDdrmDPf0sm2jEzWpCaC5D5qR7Henq3Q=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
@@ -55,6 +57,7 @@ let
       click
       setuptools
       wheel
+      build
     ]
   );
   site-packages = yosys-python3-env.sitePackages;
@@ -76,10 +79,43 @@ let
       hash = sha256;
     };
 
+    postPatch = ''
+      # in local (nix develop .#yosys) builds, the brew code takes priority for
+      # some reason, better safe than sorry
+      printf "function(use_homebrew)\nendfunction()\n" > cmake/UseHomebrew.cmake
+
+      # default version code does way too much and I prefer +g<shortrev>
+      # verisoning
+      substituteInPlace cmake/YosysVersion.cmake \
+        --replace-fail "yosys_extract_version" "yosys_extract_version_bk"
+      cat <<'EOF' >> ./cmake/YosysVersion.cmake
+      function(yosys_extract_version)
+        include(YosysVersionData)
+        set(YOSYS_VERSION_COMMIT "0")
+        set(YOSYS_VERSION "${finalAttrs.version}${
+          if rev == null then "" else "+g${lib.sources.shortRev rev}"
+        }")
+        file(READ "''${CMAKE_SOURCE_DIR}/.gitcommit" YOSYS_CHECKOUT_INFO)
+        string(STRIP "''${YOSYS_CHECKOUT_INFO}" YOSYS_CHECKOUT_INFO)
+        set(YOSYS_ORIGIN_INFO "")
+        return(PROPAGATE
+          YOSYS_VERSION_MAJOR
+          YOSYS_VERSION_MINOR
+          YOSYS_VERSION_COMMIT
+          YOSYS_VERSION
+          YOSYS_CHECKOUT_INFO
+          YOSYS_ORIGIN_INFO
+        )
+      endfunction()
+      EOF
+    '';
+
     nativeBuildInputs = [
       pkg-config
       bison
       flex
+      cmake
+      ninja
     ]
     ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
@@ -141,29 +177,15 @@ let
       };
     };
 
-    configurePhase = ''
-      runHook preConfigure
-      CC=clang CXX=clang++ make config-clang
-      runHook postConfigure
-    '';
-
-    makeFlags = [
-      "PRETTY=0"
-      "PREFIX=${placeholder "out"}"
-      "ENABLE_READLINE=0"
-      "ENABLE_EDITLINE=1"
-      "ENABLE_YOSYS=1"
-      "ENABLE_PYOSYS=1"
-      "PYTHON_DESTDIR=${placeholder "python"}/${site-packages}"
-      "PYOSYS_USE_UV=0"
+    cmakeFlags = [
+      "-DYOSYS_WITH_PYTHON:BOOL=ON"
+      "-DYOSYS_INSTALL_PYTHON:BOOL=ON"
+      "-DYOSYS_INSTALL_PYTHON_SITEDIR=${builtins.placeholder "python"}"
+      # tends to malfunction when you don't have git installed
+      "-DYOSYS_SKIP_ABC_SUBMODULE_CHECK:BOOL=ON"
     ];
 
-    postInstall = ''
-      python3 ./setup.py dist_info -o $python/${site-packages}
-    '';
-
     doCheck = false;
-    enableParallelBuilding = true;
 
     meta = {
       description = "Yosys Open SYnthesis Suite";
