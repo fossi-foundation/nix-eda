@@ -5,7 +5,7 @@
 {
   lib,
   fetchGitHubSnapshot,
-  stdenv,
+  clangStdenv,
   python3,
   bash,
   spdlog,
@@ -19,13 +19,15 @@
   cmake,
   flex,
   bison,
+  perl,
   autoPatchelfHook,
+  darwin,
   ctestCheckHook,
   rev-date ? "2026-09-17",
   rev ? "0ce1f2ebd135d89cc3082725a9e38457f12d029c",
   hash ? "sha256-EcQXgZt501vjoDw0BaTjC0dnB6GPtuIG36xJj4mrhwM=",
 }:
-stdenv.mkDerivation {
+clangStdenv.mkDerivation {
   pname = "kepler-formal";
   version = "0-unstable-${rev-date}";
 
@@ -50,9 +52,11 @@ stdenv.mkDerivation {
     bison
     cmake
     pkg-config
+    perl
     ctestCheckHook
-    autoPatchelfHook
-  ];
+  ]
+  ++ lib.optionals clangStdenv.hostPlatform.isLinux [ autoPatchelfHook ]
+  ++ lib.optionals clangStdenv.hostPlatform.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
   buildInputs = [
     boost
@@ -71,16 +75,25 @@ stdenv.mkDerivation {
 
   doCheck = true;
 
-  # CMake copies naja.so beside the executable without rewriting its build
-  # RPATH. Repair that module and the installed shared libraries together.
-  preFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
-    # Remove build paths before stdenv checks them; autoPatchelfHook then finds
-    # the installed libraries and writes the module's runtime search path.
-    patchelf --remove-rpath "$out/bin/naja.so"
-    addAutoPatchelfSearchPath "$out/lib"
-  '' + lib.optionalString stdenv.hostPlatform.isDarwin ''
-    # Use CMake's installed module, whose Mach-O library paths were rewritten.
-    cp "$out/lib/python/naja/naja.so" "$out/bin/naja.so"
+  preFixup =
+    # $out/bin/naja.so has invalid rpaths from the build process
+    lib.optionalString clangStdenv.hostPlatform.isLinux ''
+      patchelf --remove-rpath $out/bin/naja.so
+      patchelf --set-rpath $out/lib $out/bin/naja.so
+    ''
+    + lib.optionalString clangStdenv.hostPlatform.isDarwin ''
+      otool -l $out/bin/naja.so | perl -lne '$i = 3 if /LC_RPATH/; $i--; print /path (\S+)/ if $i == 0;' | xargs -n1 install_name_tool $out/bin/naja.so -delete_rpath
+      install_name_tool -add_rpath $out/lib $out/bin/naja.so
+    '';
+
+  doInstallCheck = true;
+
+  installCheckPhase = ''
+    runHook preInstallCheckPhase
+    echo "module mod1(input a, output b); assign b = ~a; endmodule" > ./mod_1.v
+    echo "module mod2(input a, output b); assign b = a ^ 1'b1; endmodule" > ./mod_2.v
+    $out/bin/kepler-formal -v sec -sv --design1 mod_1.v --design2 mod_2.v
+    runHook postInstallCheckPhase
   '';
 
   meta = {
