@@ -23,9 +23,9 @@
   autoPatchelfHook,
   darwin,
   ctestCheckHook,
-  rev-date ? "2026-09-17",
-  rev ? "0ce1f2ebd135d89cc3082725a9e38457f12d029c",
-  hash ? "sha256-EcQXgZt501vjoDw0BaTjC0dnB6GPtuIG36xJj4mrhwM=",
+  rev-date ? "2026-10-05",
+  rev ? "acb85ea8eb7b733ee8269d103df7b37f8c28fe4f",
+  hash ? "sha256-4qQHzojGPuOG2LOcFrGuwwYZ1AuAXPnp+dQdxYswtx8=",
 }:
 clangStdenv.mkDerivation {
   pname = "kepler-formal";
