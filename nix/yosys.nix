@@ -39,9 +39,9 @@
   cmake,
   ninja,
   bash,
-  version ? "0.68",
+  version ? "0.69",
   rev ? null,
-  sha256 ? "sha256-U4mBg5oT9jNvDdrmDPf0sm2jEzWpCaC5D5qR7Henq3Q=",
+  sha256 ? "sha256-aoNEKpkxzwQWS5kCM4GC/ozwdXDARSXylp6S1vEA1/g=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
@@ -60,10 +60,20 @@ let
       build
     ]
   );
-  site-packages = yosys-python3-env.sitePackages;
 in
 let
+  cmakeFlagsCommon =
+    debug:
+    [
+      (lib.cmakeBool "YOSYS_WITHOUT_READLINE" true)
+      (lib.cmakeBool "YOSYS_WITH_PYTHON" true)
+      (lib.cmakeBool "YOSYS_INSTALL_PYTHON" true)
+      (lib.cmakeFeature "YOSYS_INSTALL_PYTHON_SITEDIR" (builtins.placeholder "python"))
+    ]
+    ++ lib.optionals debug [ (lib.cmakeFeature "CMAKE_CXX_FLAGS" "-g -O0") ];
+  join_flags = lib.strings.concatMapStrings (x: " \"${x}\" ");
   self = clangStdenv.mkDerivation (finalAttrs: {
+    __structuredAttrs = true; # better serialization; enables spaces in cmakeFlags
     pname = "yosys";
     inherit version;
 
@@ -80,10 +90,6 @@ let
     };
 
     postPatch = ''
-      # in local (nix develop .#yosys) builds, the brew code takes priority for
-      # some reason, better safe than sorry
-      printf "function(use_homebrew)\nendfunction()\n" > cmake/UseHomebrew.cmake
-
       # default version code does way too much and I prefer +g<shortrev>
       # verisoning
       substituteInPlace cmake/YosysVersion.cmake \
@@ -177,12 +183,9 @@ let
       };
     };
 
-    cmakeFlags = [
-      "-DYOSYS_WITH_PYTHON:BOOL=ON"
-      "-DYOSYS_INSTALL_PYTHON:BOOL=ON"
-      "-DYOSYS_INSTALL_PYTHON_SITEDIR=${builtins.placeholder "python"}"
+    cmakeFlags = (cmakeFlagsCommon false) ++ [
       # tends to malfunction when you don't have git installed
-      "-DYOSYS_SKIP_ABC_SUBMODULE_CHECK:BOOL=ON"
+      (lib.cmakeBool "YOSYS_SKIP_ABC_SUBMODULE_CHECK" true)
     ];
 
     doCheck = false;
@@ -193,6 +196,48 @@ let
       homepage = "https://www.yosyshq.com/";
       platforms = lib.platforms.all;
     };
+
+    # Developer conveniences: these aliases/functions may be useful when
+    # using this derivations development environment using `nix develop .#yosys`
+    shellHook = ''
+        alias ys-cmake-nix='cmake -DCMAKE_BUILD_TYPE=Release ${join_flags finalAttrs.cmakeFlags} -G Ninja'
+        alias ys-cmake-debug='cmake -DCMAKE_BUILD_TYPE=Debug ${
+          join_flags (
+            cmakeFlagsCommon
+              # debug:
+              true
+          )
+        } -G Ninja'
+        alias ys-cmake-release='cmake -DCMAKE_BUILD_TYPE=Release ${
+          join_flags (
+            cmakeFlagsCommon
+              # debug:
+              false
+          )
+        } -G Ninja'
+        ys-mk-venv-wrapper() {
+          if [ ! -f ./yosys ]; then
+            return
+          fi
+          mkdir -p ./wrapped
+          cat <<HD > ./wrapped/yosys
+      #!${lib.getExe python3}
+      import os
+      import sys
+      from pathlib import Path
+
+      __here__ = Path(__file__).resolve().parent
+      venv = __here__.parents[1] / "venv"
+      env = os.environ.copy()
+      env["PYTHONPATH"] = os.fspath(venv) + "/${python3.sitePackages}"
+      exec = [__here__.parent / "yosys", "yosys"]
+      if os.getenv("USE_LLDB") == "1":
+        exec = ["lldb", "lldb", os.fspath(__here__.parent / "yosys"), "--"]
+      os.execlpe(*exec, *sys.argv[1:], env)
+      HD
+          chmod +x ./wrapped/yosys
+        }
+    '';
   });
 in
 self
