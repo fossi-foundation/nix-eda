@@ -26,9 +26,9 @@
   tk,
   m4,
   python3,
-  version ? "1.5.323",
+  version ? "1.5.324",
   rev ? null,
-  sha256 ? "sha256-L8DJdk5lkb/qh5GbZK9eDNq1eZPEQq4ZZsBQPDJcKJ0=",
+  sha256 ? "sha256-CxM2NBrkPUaeWWczsh9h+09AbXBGSukntul/TYb355A=",
 }:
 clangStdenv.mkDerivation {
   pname = "netgen";
@@ -54,6 +54,10 @@ clangStdenv.mkDerivation {
     m4
     python3
   ];
+
+  postFixup = ''
+    sed -i "1s|#!/bin/bash|#!${clangStdenv.shell}|" $out/bin/netgen
+  '';
 
   meta = with lib; {
     description = "Complete LVS tool for comparing SPICE or verilog netlists";
