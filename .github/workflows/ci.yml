@@ -1,13 +1,13 @@
 name: Build with Nix
 
 on:
+  # Runs on all pushes to branches
   push:
-    # Runs on all pushes to branches
     branches: ['**']
-    # Runs on all PRs
-    pull_request:
-    # Manual Dispatch
-    workflow_dispatch:
+  # Runs on all PRs
+  pull_request:
+  # Manual Dispatch
+  workflow_dispatch:
 jobs:
   build-and-test:
     strategy:
