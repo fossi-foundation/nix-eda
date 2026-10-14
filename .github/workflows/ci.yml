@@ -2,8 +2,12 @@ name: Build with Nix
 
 on:
   push:
+    # Runs on all pushes to branches
     branches: ['**']
-
+    # Runs on all PRs
+    pull_request:
+    # Manual Dispatch
+    workflow_dispatch:
 jobs:
   build-and-test:
     strategy:
