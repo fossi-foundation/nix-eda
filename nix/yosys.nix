@@ -39,9 +39,9 @@
   cmake,
   ninja,
   bash,
-  version ? "0.70",
+  version ? "0.69",
   rev ? null,
-  sha256 ? "sha256-TKDVGY0SwPU3TnjhtArKtZWbHHY+E5iwFgc4H0g5vYI=",
+  sha256 ? "sha256-aoNEKpkxzwQWS5kCM4GC/ozwdXDARSXylp6S1vEA1/g=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
