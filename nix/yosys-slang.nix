@@ -28,9 +28,9 @@
   fmt,
   boost,
   tomlplusplus,
-  rev ? "e2829839afc62961d704123f30ed46e75477f33c",
-  rev-date ? "2026-08-03",
-  hash ? "sha256-ovLFi/1p9fOzWD6dEkhSO8SHcLfjOmBLqax5zB2JXHk=",
+  rev ? "40dd844c31626bec396a8693844b1a1057a5dabb",
+  rev-date ? "2026-10-15",
+  hash ? "sha256-C2ExVY25N1GaIULNAsKUBgoQ1H1piBcHIOcJhQAF0J0=",
 }:
 clangStdenv.mkDerivation {
   name = "yosys-slang";
