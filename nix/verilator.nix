@@ -3,9 +3,9 @@
 {
   verilator,
   fetchFromGitHub,
-  version ? "5.046",
+  version ? "5.052",
   rev ? null,
-  sha256 ? "sha256-dfZzbQrw/14dFvWnkmCDElwsGm6GdFstNAURujvEIb8=",
+  sha256 ? "sha256-3xeodLkal/crtcB091lthUe/7/wC+sjAYRqNyl7/kv0=",
 }:
 verilator.overrideAttrs (
   attrs': attrs: {
@@ -17,5 +17,10 @@ verilator.overrideAttrs (
       inherit sha256;
     };
     patches = [ ];
+    postPatch = ''
+      patchShebangs bin/* src/* nodist/* docs/bin/* examples/xml_py/* \
+      test_regress/{driver.py,t/*.{pl,pf,py}} \
+      ci/* ci/docker/run/* ci/docker/run/hooks/* ci/docker/buildenv/build.sh
+    '';
   }
 )
