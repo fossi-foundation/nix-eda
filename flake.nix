@@ -118,7 +118,10 @@
               ngspice = callPackage ./nix/ngspice.nix { };
               openvaf-r = callPackage ./nix/openvaf-r.nix { };
               ## https://github.com/YosysHQ/oss-cad-suite-build/issues/87
-              oss-cad-suite-bitwuzla = callPackage ./nix/oss-cad-suite-bitwuzla.nix { };
+              oss-cad-suite-bitwuzla =
+                lib.warn
+                  "Starting nix-eda 8, oss-cad-suite-bitwuzla will be removed. As of Yosys 0.69, the upstream bitwuzla is compatible."
+                  (callPackage ./nix/oss-cad-suite-bitwuzla.nix { });
               tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
               tk-x11 = callPackage ./nix/tk-x11.nix { };
               verilator = callPackage ./nix/verilator.nix { verilator = pkgs.verilator; };
@@ -176,7 +179,7 @@
             ]
             ++ lib.optionals (lib.meta.availableOn pkgs.stdenv.hostPlatform yosys-ghdl) [ yosys-ghdl ]
           );
-          bitwuzla = lib.warn "Starting nix-eda 8, packages.${system}.bitwuzla will be removed. For the Yosys-compatible version, use oss-cad-suite-bitwuzla." pkgs.oss-cad-suite-bitwuzla;
+          bitwuzla = lib.warn "Starting nix-eda 8, packages.${system}.bitwuzla will be removed. As of Yosys 0.69, the upstream bitwuzla is compatible." pkgs.bitwuzla;
           inherit (pkgs)
             gdsfill
             ghdl-bin

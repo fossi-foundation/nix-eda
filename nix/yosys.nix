@@ -68,7 +68,7 @@ let
       (lib.cmakeBool "YOSYS_WITHOUT_READLINE" true)
       (lib.cmakeBool "YOSYS_WITH_PYTHON" true)
       (lib.cmakeBool "YOSYS_INSTALL_PYTHON" true)
-      (lib.cmakeFeature "YOSYS_INSTALL_PYTHON_SITEDIR" (builtins.placeholder "python"))
+      (lib.cmakeFeature "YOSYS_INSTALL_PYTHON_SITEDIR" "${(builtins.placeholder "python")}/${python3.sitePackages}")
     ]
     ++ lib.optionals debug [ (lib.cmakeFeature "CMAKE_CXX_FLAGS" "-g -O0") ];
   join_flags = lib.strings.concatMapStrings (x: " \"${x}\" ");
@@ -85,7 +85,7 @@ let
     src = fetchGitHubSnapshot {
       owner = "yosyshq";
       repo = "yosys";
-      rev = if rev == null then "v${version}" else "rev";
+      rev = if rev == null then "v${version}" else rev;
       hash = sha256;
     };
 
@@ -122,6 +122,7 @@ let
       flex
       cmake
       ninja
+      python3.pkgs.pythonImportsCheckHook
     ]
     ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
@@ -188,7 +189,7 @@ let
       (lib.cmakeBool "YOSYS_SKIP_ABC_SUBMODULE_CHECK" true)
     ];
 
-    doCheck = false;
+    pythonImportsCheck = [ "pyosys.libyosys" ];
 
     meta = {
       description = "Yosys Open SYnthesis Suite";
