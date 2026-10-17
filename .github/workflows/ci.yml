@@ -71,8 +71,8 @@ jobs:
         uses: ./.github/actions/install_nix
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          nix_cache_domain: ${{ vars.NIX_CACHE }}
-          nix_public_key: ${{ vars.NIX_PUBLIC_KEY }}
+          nix_cache_domain: ${{ vars.NIX_CACHE || 'nix-cache.fossi-foundation.org' }}
+          nix_public_key: ${{ vars.NIX_PUBLIC_KEY || 'nix-cache.fossi-foundation.org:3+K59iFwXqKsL7BNu6Guy0v+uTlwsxYQxjspXzqLYQs=' }}
       - id: enumerate_packages
         name: Get all packages
         run: |
