@@ -35,9 +35,9 @@
   darwin,
   autoconf269,
   automake,
-  version ? "8.3.677",
+  version ? "8.3.685",
   rev ? null,
-  sha256 ? "sha256-AxyVY104Jc41OGoBSdQwox/2TRcRJN13AOqGwem060s=",
+  sha256 ? "sha256-7rd+IcVvrIMeDldkVaVy0SUZ97r/wOCRBvOAHtLV0Yc=",
 }:
 clangStdenv.mkDerivation {
   pname = "magic-vlsi";
@@ -75,7 +75,7 @@ clangStdenv.mkDerivation {
 
     # "Precompute" git rev-parse HEAD
     substituteInPlace ./scripts/defs.mak.in\
-      --replace-fail '$(shell git rev-parse HEAD)' $(cat .gitcommit)
+      --replace-fail '$(shell git -C ''${MAGICSRC} rev-parse HEAD 2>/dev/null)' $(cat .gitcommit)
   '';
 
   configureFlags = [
