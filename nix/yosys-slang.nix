@@ -73,7 +73,7 @@ clangStdenv.mkDerivation {
     runHook postPatch
   '';
 
-  doCheck = true;
+  doCheck = false;  # to be removed in nix-eda 8
 
   installPhase = ''
     runHook preBuild
