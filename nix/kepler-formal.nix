@@ -23,9 +23,9 @@
   autoPatchelfHook,
   darwin,
   ctestCheckHook,
-  rev-date ? "2026-10-05",
-  rev ? "acb85ea8eb7b733ee8269d103df7b37f8c28fe4f",
-  hash ? "sha256-4qQHzojGPuOG2LOcFrGuwwYZ1AuAXPnp+dQdxYswtx8=",
+  rev-date ? "2026-11-03",
+  rev ? "1cf86ef6a9deb931981ff3a224a3df8892c7f666",
+  hash ? "sha256-Fobmg00tZAT5iSC9lZZJcK/L9QRV+jywIzYNaqtfBjc=",
 }:
 clangStdenv.mkDerivation {
   pname = "kepler-formal";
@@ -42,9 +42,6 @@ clangStdenv.mkDerivation {
     # This script generates some test scripts that harcode the shebang
     substituteInPlace ./test/sec/RunSecStrategiesRegressTests.sh \
       --replace-fail "#!/usr/bin/env bash" "#!${lib.getExe bash}"
-
-    substituteInPlace ./thirdparty/naja/thirdparty/slang/external/CMakeLists.txt \
-      --replace-fail "FIND_PACKAGE_ARGS 12.2" "FIND_PACKAGE_ARGS ${fmt.version}"
   '';
 
   nativeBuildInputs = [
@@ -70,7 +67,8 @@ clangStdenv.mkDerivation {
   ];
 
   cmakeFlags = [
-    "-DFMT_INSTALL:BOOL=OFF"
+    "-DSLANG_USE_SYSTEM_FMT:BOOL=ON"
+    "-DSLANG_USE_SYSTEM_BOOST:BOOL=ON"
   ];
 
   doCheck = true;
