@@ -38,13 +38,14 @@
   fetchurl,
   buildEnv,
   makeBinaryWrapper,
-  version ? "0.30.13",
-  sha256 ? "sha256-/m6Tf3f0xQ1yUAMS9Dmma19FYKtofLxEacOBS727Dsk=",
+  darwin,
   # Python environments
   klayout,
   buildPythonEnvForInterpreter,
+  version ? "0.30.13",
+  sha256 ? "sha256-/m6Tf3f0xQ1yUAMS9Dmma19FYKtofLxEacOBS727Dsk=",
 }:
-clangStdenv.mkDerivation {
+clangStdenv.mkDerivation (finalAttrs: {
   pname = "klayout";
   inherit version;
 
@@ -74,7 +75,8 @@ clangStdenv.mkDerivation {
     ruby
     gnused
     qt6.wrapQtAppsHook
-  ];
+  ]
+  ++ lib.optionals clangStdenv.hostPlatform.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
   buildInputs = with qt6Packages; [
     qtbase
@@ -91,27 +93,32 @@ clangStdenv.mkDerivation {
     ruby
   ];
 
-  configurePhase =
-    (lib.strings.optionalString clangStdenv.isDarwin ''
-      export MAC_LIBGIT2_INC="${libgit2}/include"
-      export MAC_LIBGIT2_LIB="${libgit2}/lib"
-      export LDFLAGS="-headerpad_max_install_names"
-    '')
-    + ''
-      python3 ./setup.py egg_info
-      ./build.sh\
-        -prefix $out/lib\
-        -with-qtbinding\
-        -python $(which python3)\
-        -ruby $(which ruby)\
-        -expert\
-        -verbose\
-        -dry-run
-    '';
+  configurePhase = ''
+    runHook preConfigure
+  ''
+  + (lib.strings.optionalString clangStdenv.hostPlatform.isDarwin ''
+    export MAC_LIBGIT2_INC="${libgit2}/include"
+    export MAC_LIBGIT2_LIB="${libgit2}/lib"
+    export LDFLAGS="-headerpad_max_install_names"
+  '')
+  + ''
+    python3 ./setup.py egg_info
+    ./build.sh\
+      -prefix $out/lib\
+      -with-qtbinding\
+      -python "${lib.getExe python3}"\
+      -ruby "${lib.getExe ruby}"\
+      -qmake "${lib.getBin qt6Packages.qtbase}/bin/qmake"\
+      -expert\
+      -verbose\
+      -dry-run
+    runHook postConfigure
+  '';
 
   buildPhase = ''
-    echo "Using $NIX_BUILD_CORES threads…"
+    runHook preBuild
     make -j$NIX_BUILD_CORES -C build-release PREFIX=$out
+    runHook postBuild
   '';
 
   installPhase = ''
@@ -125,7 +132,7 @@ clangStdenv.mkDerivation {
     ln -s $out/lib/pymod/klayout*.dist-info $python/${python3.sitePackages}/
   ''
   + (
-    if clangStdenv.isDarwin then
+    if clangStdenv.hostPlatform.isDarwin then
       ''
         cp $out/lib/klayout.app/Contents/MacOS/klayout $out/bin/
       ''
@@ -136,7 +143,7 @@ clangStdenv.mkDerivation {
   );
 
   # The automatic Qt wrapper overrides makeWrapperArgs
-  preFixup = lib.strings.optionalString clangStdenv.isDarwin ''
+  preFixup = lib.strings.optionalString clangStdenv.hostPlatform.isDarwin ''
     python3 ${./supporting/klayout/patch_binaries.py} $out/lib $out/lib/pymod/klayout $out/bin/klayout
   '';
 
@@ -151,11 +158,11 @@ clangStdenv.mkDerivation {
     };
   };
 
-  meta = with lib; {
+  meta = {
     description = "High performance layout viewer and editor with support for GDS and OASIS";
-    license = with licenses; [ gpl3Plus ];
+    license = with lib.licenses; [ gpl3Plus ];
     homepage = "https://www.klayout.de/";
     changelog = "https://www.klayout.de/development.html#${version}";
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = with lib; platforms.linux ++ platforms.darwin;
   };
-}
+})

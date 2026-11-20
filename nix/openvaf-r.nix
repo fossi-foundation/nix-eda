@@ -12,6 +12,7 @@
   version ? "24.0.1",
   rev ? null,
   sha256 ? "sha256-qIxvO+M32A8WlPSQ0WqZHfwiR9MmcBs0nbbfhQoqKLs=",
+  cargoHash ? "sha256-+jvaiBCmjd3RrlES+Sc1SskEMOtO1ykOdInMTH/Gazo=",
 }:
 (rustPlatform.buildRustPackage.override { stdenv = clangStdenv; }) {
   pname = "openvaf-r";
@@ -27,7 +28,7 @@
     fetchSubmodules = true;
   };
 
-  cargoHash = "sha256-+jvaiBCmjd3RrlES+Sc1SskEMOtO1ykOdInMTH/Gazo=";
+  inherit cargoHash;
 
   postPatch = ''
     # nix wrapper not compatible with --target flag

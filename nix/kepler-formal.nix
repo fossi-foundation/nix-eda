@@ -67,8 +67,8 @@ clangStdenv.mkDerivation {
   ];
 
   cmakeFlags = [
-    "-DSLANG_USE_SYSTEM_FMT:BOOL=ON"
-    "-DSLANG_USE_SYSTEM_BOOST:BOOL=ON"
+    (lib.cmakeBool SLANG_USE_SYSTEM_FMT true)
+    (lib.cmakeBool SLANG_USE_SYSTEM_BOOST true)
   ];
 
   doCheck = true;

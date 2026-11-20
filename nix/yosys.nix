@@ -39,9 +39,9 @@
   cmake,
   ninja,
   bash,
-  version ? "0.70",
+  version ? "0.71",
   rev ? null,
-  sha256 ? "sha256-TKDVGY0SwPU3TnjhtArKtZWbHHY+E5iwFgc4H0g5vYI=",
+  sha256 ? "sha256-UAXx66uMegs/+ouirj71GwXEa7rONjgPs8Z/PX/eOEo=",
   darwin, # To fix codesigning issue for pyosys
   # For environments
   yosys,
@@ -124,7 +124,7 @@ let
       ninja
       python3.pkgs.pythonImportsCheckHook
     ]
-    ++ lib.optionals clangStdenv.isDarwin [ darwin.autoSignDarwinBinariesHook ];
+    ++ lib.optionals clangStdenv.hostPlatform.isDarwin [ darwin.autoSignDarwinBinariesHook ];
 
     propagatedBuildInputs = [
       tcl

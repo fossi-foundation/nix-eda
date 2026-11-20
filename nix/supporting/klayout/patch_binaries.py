@@ -1,10 +1,10 @@
 import os
+import platform
 import subprocess
 import sys
-import platform
 
 if platform.system() != "Darwin":
-    exit(0)
+    sys.exit(0)
 
 args = sys.argv[1:]
 

@@ -30,24 +30,27 @@ https://cachix.nixos.org: See https://github.com/NixOS/nix/issues/13333.
 This script is intended as a stop-gap measure until this is implemented.
 
 This script requires:
-- Python 3.8+ with httpx
+- Python 3.10+ with httpx2
 - the AWS CLI to be installed (with credentials configured in the environment.)
 """
-import httpx
 
+# ruff: noqa: LOG015
+
+import argparse
 import io
+import json
+import logging
 import os
 import re
-import json
-import argparse
 import shlex
+import subprocess
 import sys
 import tempfile
-import subprocess
-import logging
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
-from typing import Any, List, Dict, Set
+
+import httpx2 as httpx
 
 ws_rx = re.compile(r"\s+")
 
@@ -58,8 +61,9 @@ logging.basicConfig(
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
+
 def parse_narinfo(file: io.TextIOWrapper):
-    result: Dict[str, Any] = {}
+    result: dict[str, Any] = {}
     for line_raw in file:
         key_raw, value_raw = line_raw.strip().split(":", maxsplit=1)
         key = key_raw.strip()
@@ -94,7 +98,7 @@ class NixPathInfoError(RuntimeError):
             if unavailable_match := unavailable.search(line):
                 return NixDerivationUnavailable(unavailable_match[1])
 
-        return Self(f"unexpected error occurred:\n" + stderr)
+        return Self("unexpected error occurred:\n" + stderr)
 
 
 class NixDerivationUnavailable(NixPathInfoError):
@@ -144,19 +148,17 @@ def nix_pathinfo_parse(
 
 def paths_from_path_info(path_info_raw: Any):
     if isinstance(path_info_raw, dict):  # nix (as of 2.31.2)
-        return set(key for key in path_info_raw if path_info_raw[key] is not None)
+        return {key for key in path_info_raw if path_info_raw[key] is not None}
     elif isinstance(path_info_raw, list):  # lix (as of 2.93.3)
-        return set(entry["path"] for entry in path_info_raw if entry["valid"])
+        return {entry["path"] for entry in path_info_raw if entry["valid"]}
     else:
         logging.warning(
-            f"nix path-info returned an unexpected result: {repr(json.dumps(path_info_raw))}…"
+            f"nix path-info returned an unexpected result: {json.dumps(path_info_raw)!r}…"
         )
         return None
 
-def filter_store_paths_by_remote(
-    *store_paths,
-    remote="https://cache.nixos.org"
-):
+
+def filter_store_paths_by_remote(*store_paths, remote="https://cache.nixos.org"):
     remote = remote.rstrip("/")
     filtered = []
     client = httpx.Client()
@@ -196,8 +198,8 @@ def main(text_args):
     args.add_argument("flake_outputs", nargs="+")
     args_parsed = args.parse_args(text_args)
 
-    paths_queried: Set[str] = set()
-    paths_in_upstream_caches: Dict[str, str] = {}
+    paths_queried: set[str] = set()
+    paths_in_upstream_caches: dict[str, str] = {}
 
     s3_nix_url = args_parsed.to_s3_bucket
     if "://" not in s3_nix_url:
@@ -229,7 +231,7 @@ def main(text_args):
 
         # 1. Check which paths have already been queried in previous attempts
         #    to avoid hammering upstreams.
-        paths_to_query: Set[str] = set()
+        paths_to_query: set[str] = set()
         for path in closure:
             if path not in paths_queried:
                 paths_to_query.add(path)
@@ -270,7 +272,7 @@ def main(text_args):
             #    https://github.com/NixOS/nix/issues/12835
             with tempfile.TemporaryDirectory(prefix="nix-eda-copy-uncache") as temp_dir:
                 d = os.path.abspath(os.path.realpath(temp_dir))
-                sync_include_args: List[str] = []
+                sync_include_args: list[str] = []
                 logging.info("Copying closure…")
                 subprocess.check_call(
                     [

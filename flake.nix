@@ -21,7 +21,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    nixpkgs.url = "github:nixos/nixpkgs/staging-next";
   };
   outputs =
     {
@@ -62,6 +62,7 @@
               callPythonPackage = lib.callPackageWith (pkgs' // pypkgs');
             in
             {
+              ruamel-yaml-string = callPythonPackage ./nix/ruamel-yaml-string.nix { };
               cocotb = callPythonPackage ./nix/cocotb.nix { };
               antlr4_9-runtime = callPythonPackage ./nix/python3-antlr4-runtime.nix {
                 antlr4 = pkgs'.antlr4_9;
@@ -73,17 +74,6 @@
             cairo = pkgs.cairo.override {
               x11Support = true;
             };
-
-            ## IcarusVerilog on Intel Macs works just fine,
-            iverilog = pkgs.iverilog.overrideAttrs { meta.badPlatforms = [ ]; };
-
-            ## slightly worse floating point errors cause ONE of the tests to fail
-            ## on x86_64-darwin
-            qrupdate = pkgs.qrupdate.overrideAttrs (
-              self: super: {
-                doCheck = pkgs.stdenv.hostPlatform.system != "x86_64-darwin";
-              }
-            );
 
             ## Xyce builds and works just fine on aarch64-linux
             xyce = pkgs.xyce.overrideAttrs (
@@ -117,21 +107,17 @@
               netgen = callPackage ./nix/netgen.nix { };
               ngspice = callPackage ./nix/ngspice.nix { };
               openvaf-r = callPackage ./nix/openvaf-r.nix { };
-              ## https://github.com/YosysHQ/oss-cad-suite-build/issues/87
-              oss-cad-suite-bitwuzla =
-                lib.warn
-                  "Starting nix-eda 8, oss-cad-suite-bitwuzla will be removed. As of Yosys 0.69, the upstream bitwuzla is compatible."
-                  (callPackage ./nix/oss-cad-suite-bitwuzla.nix { });
+              oss-cad-suite-bitwuzla = throw "'oss-cad-suite-bitwuzla' has been removed starting nix-eda 8.0.0 – yosys is now compatible with upstream bitwuzla.";
+              quaigh = callPackage ./nix/quaigh.nix { };
               tclFull = throw "'tclFull' has been removed starting nix-eda 6.0.0 – list [tcl tclPackages.tcllib tclPackages.tclx]";
               tk-x11 = callPackage ./nix/tk-x11.nix { };
               verilator = callPackage ./nix/verilator.nix { verilator = pkgs.verilator; };
               xschem = callPackage ./nix/xschem.nix { };
+              xyce = callPackage ./nix/xyce.nix { };
               yosys = callPackage ./nix/yosys.nix { };
               yosys-sby = callPackage ./nix/yosys-sby.nix { };
               yosys-eqy = callPackage ./nix/yosys-eqy.nix { };
-              yosys-slang =
-                lib.warn "yosys-slang will be removed starting nix-eda 8.0.0 as slang is now built into Yosys."
-                  (callPackage ./nix/yosys-slang.nix { });
+              yosys-slang = throw "'yosys-slang' has been removed starting nix-eda 8.0.0 – slang is now built into yosys.";
               yosys-ghdl = callPackage ./nix/yosys-ghdl.nix {
                 ghdl' =
                   if (lib.meta.availableOn pkgs'.stdenv.hostPlatform pkgs'.ghdl-bin) then
@@ -179,12 +165,10 @@
             ]
             ++ lib.optionals (lib.meta.availableOn pkgs.stdenv.hostPlatform yosys-ghdl) [ yosys-ghdl ]
           );
-          bitwuzla = lib.warn "Starting nix-eda 8, packages.${system}.bitwuzla will be removed. As of Yosys 0.69, the upstream bitwuzla is compatible." pkgs.bitwuzla;
+          gtkwave = lib.warn "Starting nix-eda 9, packages.${system}.gtkwave will be removed as the upstream version of gtkwave has been fixed." pkgs.gtkwave;
           inherit (pkgs)
             gdsfill
             ghdl-bin
-            gtkwave
-            iverilog
             kepler-formal
             klayout
             klayout-gdsfactory
@@ -192,7 +176,7 @@
             magic-vlsi
             netgen
             openvaf-r
-            oss-cad-suite-bitwuzla
+            quaigh
             tk-x11
             verilator
             xschem
@@ -200,7 +184,6 @@
             yosys
             yosys-eqy
             yosys-ghdl
-            yosys-slang
             yosys-sby
             ;
           inherit (pkgs.python3.pkgs)

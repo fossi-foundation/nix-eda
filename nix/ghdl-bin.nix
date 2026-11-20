@@ -69,7 +69,7 @@ stdenv.mkDerivation (finalAttrs: {
   fixupPhase = ''
     runHook preFixup
   ''
-  + lib.optionalString (stdenv.isLinux) ''
+  + lib.optionalString (stdenv.hostPlatform.isLinux) ''
     $CC \
       -shared \
       -D GHDL_PREFIX=\"$out/lib/ghdl\" \
@@ -93,7 +93,7 @@ stdenv.mkDerivation (finalAttrs: {
   ''
   +
     # autoPatchelfHook handles fixup on linux
-    lib.optionalString (stdenv.isDarwin) ''
+    lib.optionalString (stdenv.hostPlatform.isDarwin) ''
       $CC \
         -dynamiclib -install_name $out/lib/set_ghdl_pfx.dylib \
         -D GHDL_PREFIX=\"$out/lib/ghdl\" \
