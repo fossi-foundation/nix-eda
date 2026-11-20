@@ -85,16 +85,14 @@ clangStdenv.mkDerivation {
     set +x
   '';
 
-  enableParallelBuilding = true;
-
-  meta = with lib; {
+  meta = {
     description = "The Next Generation Spice (Electronic Circuit Simulator)";
     homepage = "http://ngspice.sourceforge.net";
-    license = with licenses; [
+    license = with lib.licenses; [
       bsd3
       gpl2Plus
       lgpl2Plus
     ]; # See https://sourceforge.net/p/ngspice/ngspice/ci/master/tree/COPYING
-    platforms = platforms.linux ++ platforms.darwin;
+    platforms = with lib.platforms; linux ++ darwin;
   };
 }

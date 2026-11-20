@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2025 fossi-foundation/nix-eda contributors
 # Copyright (c) 2021 UmbraLogic Technologies LLC
@@ -24,27 +23,26 @@
 # Adapted from OpenLane Build Scripts
 #
 # https://github.com/The-OpenROAD-Project/OpenLane/blob/3c41826a8aaaf724e423593ddc7bea392e65277e/docker/utils.py
-import ssl
+import argparse
 import json
-import re
 import os
-import pathlib
+from pathlib import Path
+import re
 import shutil
+import ssl
 import sys
 import tarfile
 import tempfile
 import urllib.parse
-from typing import Optional
 
 try:
-    import click
-    import httpx
+    import httpx2 as httpx
 except ImportError:
     print(
-        "python packages click and httpx are required -- pip3 install click httpx",
+        "python package httpx2 is required -- pip3 install httpx2",
         file=sys.stderr,
     )
-    exit(-1)
+    sys.exit(-1)
 
 
 class GitHubSession(httpx.Client):
@@ -52,7 +50,7 @@ class GitHubSession(httpx.Client):
         self,
         *,
         follow_redirects: bool = True,
-        github_token: Optional[str] = None,
+        github_token: str | None = None,
         ssl_context=None,
         **kwargs,
     ):
@@ -76,7 +74,7 @@ class GitHubSession(httpx.Client):
                     f"Invalid SOCKS proxy: download_github_snapshot only supports http://, https:// and socks5:// schemes: {e.args[0]}",
                     file=sys.stderr,
                 )
-                exit(-1)
+                sys.exit(-1)
             else:
                 raise e from None
         github_token = github_token or os.getenv("GITHUB_TOKEN", "").strip()
@@ -92,7 +90,7 @@ class GitHubSession(httpx.Client):
 
     @classmethod
     def get_user_agent(Self) -> str:
-        return f"nix-eda"
+        return "nix-eda"
 
 
 github_client = GitHubSession()
@@ -119,41 +117,50 @@ def download_tarball(repo_url: str, commit: str) -> str:
 def extract_tarball(tarball_path: str, extract_to: str):
     print(f"Extracting to {extract_to}")
     shutil.rmtree(extract_to, ignore_errors=True)
-    pathlib.Path(extract_to).mkdir(parents=True, exist_ok=True)
+    Path(extract_to).mkdir(parents=True, exist_ok=True)
 
     with tarfile.open(tarball_path, "r:gz") as tar:
         for member in tar.getmembers():
-            stripped = "/".join(member.name.split("/")[1:])
-            if not stripped:
+            # member.name example: YosysHQ-yosys-80f38d9/tests/simple/values.v
+            # emulate --strip-components
+            parts = Path(member.name).parts[1:]
+            if len(parts) == 0: # root directory
                 continue
-            member.name = stripped
+            member.name = str(Path(*parts))
             tar.extract(member, path=extract_to, filter="tar")
 
 
 def fetch_tarball_and_submodules(
     repo_url,
-    commit,
-    base_path=None,
+    rev,
+    out_dir=None,
     filter=".",
     add_gitcommit=False,
 ):
-    if base_path is None:
-        base_path = urllib.parse.urlsplit(repo_url).path.split("/")[-1]
-    key = (repo_url, commit)
+    """
+    Downloads a snapshot of a GitHub repo, i.e. with all GitHub-based submodules
+    recursively downloaded.
+
+    Currently does not work for repositories with private or externally hosted
+    submodules.
+    """
+    if out_dir is None:
+        out_dir = urllib.parse.urlsplit(repo_url).path.split("/")[-1]
+    key = (repo_url, rev)
 
     if key not in download_cache:
-        tarball_path = download_tarball(repo_url, commit)
+        tarball_path = download_tarball(repo_url, rev)
         download_cache[key] = tarball_path
     else:
         tarball_path = download_cache[key]
-        print(f"Using cached tarball for {repo_url}@{commit}")
+        print(f"Using cached tarball for {repo_url}@{rev}")
 
-    extract_tarball(tarball_path, base_path)
+    extract_tarball(tarball_path, out_dir)
 
     # Fetch tree from GitHub API
     repo_path = urllib.parse.urlsplit(repo_url).path.strip("/")
     tree_url = (
-        f"https://api.github.com/repos/{repo_path}/git/trees/{commit}?recursive=1"
+        f"https://api.github.com/repos/{repo_path}/git/trees/{rev}?recursive=1"
     )
     print(f"Fetching tree from {tree_url}")
 
@@ -162,7 +169,7 @@ def fetch_tarball_and_submodules(
     tree_data = tree_resp.json()
 
     if add_gitcommit:
-        with open(os.path.join(base_path, ".gitcommit"), "w") as f:
+        with open(os.path.join(out_dir, ".gitcommit"), "w") as f:
             f.write(tree_data["sha"])
 
     submodules = {
@@ -173,7 +180,7 @@ def fetch_tarball_and_submodules(
 
     # Fetch and parse .gitmodules
     gitmodules_url = (
-        f"https://raw.githubusercontent.com/{repo_path}/{commit}/.gitmodules"
+        f"https://raw.githubusercontent.com/{repo_path}/{rev}/.gitmodules"
     )
     print(f"Fetching .gitmodules from {gitmodules_url}")
 
@@ -215,65 +222,47 @@ def fetch_tarball_and_submodules(
         url = sub.get("url")
         if url.startswith(("./", "../")):
             url = urllib.parse.urljoin(repo_url + "/", url)
-        if url.endswith(".git"):
-            url = url[:-4]
+        url = url.removesuffix(".git")
 
-        sub_path = os.path.join(base_path, path)
+        sub_path = os.path.join(out_dir, path)
         print(f"Fetching submodule {name} at {path}…")
         fetch_tarball_and_submodules(
             repo_url=url,
-            commit=sha,
-            base_path=sub_path,
+            rev=sha,
+            out_dir=sub_path,
             filter=filter,
             add_gitcommit=add_gitcommit,
         )
 
     with open(
-        os.path.join(base_path, ".submodule_hashes.json"),
+        os.path.join(out_dir, ".submodule_hashes.json"),
         "w",
         encoding="utf8",
     ) as f:
         json.dump(submodules, sort_keys=True, fp=f)
 
-    print(f"Finished {base_path}.")
-
-
-@click.command()
-@click.option(
-    "--out-dir",
-    default=None,
-    help="The directory to download to. If omitted, will be equal to the name of the repository (CWD).",
-)
-@click.option(
-    "--filter",
-    default=".",
-    help="Regex to match submodule paths. Submodules that are not matched will be excluded.",
-)
-@click.option(
-    "--add-gitcommit",
-    default=False,
-    is_flag=True,
-    help="Adds a .gitcommit file containing the commit sha256 of each resolved tree",
-)
-@click.argument("repo_url")
-@click.argument("commit")
-def main(repo_url, commit, out_dir, filter, add_gitcommit):
-    """
-    Downloads a snapshot of a GitHub repo, i.e. with all GitHub-based submodules
-    recursively downloaded.
-
-    Currently does not work for repositories with private or externally hosted
-    submodules.
-    """
-    global github_client
-    fetch_tarball_and_submodules(
-        repo_url=repo_url,
-        commit=commit,
-        base_path=out_dir,
-        filter=filter,
-        add_gitcommit=add_gitcommit,
-    )
+    print(f"Finished {out_dir}.")
 
 
 if __name__ == "__main__":
-    main()
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "--out-dir",
+        default=None,
+        help="The directory to download to. If omitted, will be equal to the name of the repository (CWD)."
+    )
+    ap.add_argument(
+        "--filter",
+        default=".",
+        help="Regex to match submodule paths. Submodules that are not matched will be excluded.",
+    )
+    ap.add_argument(
+        "--add-gitcommit",
+        default=False,
+        action="store_true",
+        help="Adds a .gitcommit file containing the commit sha256 of each resolved tree",
+    )
+    ap.add_argument("repo_url")
+    ap.add_argument("rev")
+    ns = ap.parse_args()
+    fetch_tarball_and_submodules(**ns.__dict__)

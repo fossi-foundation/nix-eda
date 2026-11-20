@@ -1,10 +1,11 @@
-#!/usr/bin/env python3
 """
-Uses the lief library to inject a dylib
+Uses the lief library to inject a dylib to a Mach-O binary
 """
+
 import os
-import lief
+
 import click
+import lief
 
 
 @click.command()

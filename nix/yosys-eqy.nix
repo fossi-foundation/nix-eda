@@ -29,8 +29,8 @@
   zlib,
   yosys-sby,
   makeBinaryWrapper,
-  version ? "0.70",
-  sha256 ? "sha256-AxYEYGz1WlILFFi3MSdprKWHqbj+1e5nPvzj2HEvBH8=",
+  version ? "0.71",
+  sha256 ? "sha256-CBanauGTaElCox+mtktP53c/BgR0UjFHXCiZUu3rZVw=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-eqy";

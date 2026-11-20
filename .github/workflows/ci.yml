@@ -49,16 +49,9 @@ jobs:
               nix_double: "aarch64-linux",
             },
             {
-              name: "macOS 15",
+              name: "macOS 26",
               family: "macos",
-              runner: "macos-15", # with rosetta
-              archs: "x86_64",
-              nix_double: "x86_64-darwin",
-            },
-            {
-              name: "macOS 15",
-              family: "macos",
-              runner: "macos-15",
+              runner: "macos-26",
               archs: "arm64",
               nix_double: "aarch64-darwin",
             },

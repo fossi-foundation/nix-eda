@@ -37,8 +37,7 @@ stdenvNoCC.mkDerivation {
   nativeBuildInputs = [
     (python3.withPackages (
       ps: with ps; [
-        click
-        httpx
+        httpx2
         truststore
       ]
     ))
@@ -70,6 +69,7 @@ stdenvNoCC.mkDerivation {
   impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ [
     "GITHUB_TOKEN"
   ];
+  inherit owner repo rev;
   outputHash = hash;
   outputHashAlgo = if hash == "" then "sha256" else null;
   outputHashMode = "recursive";

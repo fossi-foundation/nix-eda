@@ -22,6 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 {
   lib,
+  stdenv,
   buildPythonPackage,
   fetchFromGitHub,
   setuptools,
@@ -29,55 +30,60 @@
   find-libpython,
   pytestCheckHook,
   swig,
+  gnumake,
   iverilog,
   ghdl-bin,
+  pexpect,
   zlib,
-  # Metadata
-  version ? "2.0.1",
-  sha256 ? "sha256-LXQNqFlvP+WBaDGWPs5+BXBtW2dhDu+v+7lR/AMG21M=",
+  version ? "2.1.0",
+  sha256 ? "sha256-MND6d+5ymlGT597kt6rWN9ylmoGvexIylzsgjY0NRe8=",
 }:
-let
-  self = buildPythonPackage {
-    pname = "cocotb";
-    inherit version;
-    format = "setuptools";
+buildPythonPackage {
+  pname = "cocotb";
+  inherit version;
+  format = "setuptools";
 
-    # pypi source doesn't include tests
-    src = fetchFromGitHub {
-      owner = "cocotb";
-      repo = "cocotb";
-      tag = "v${version}";
-      inherit sha256;
-    };
-
-    buildInputs = [
-      setuptools
-      zlib
-    ];
-    propagatedBuildInputs = [ find-libpython ];
-
-    postPatch = ''
-      patchShebangs bin/*.py
-    '';
-
-    nativeCheckInputs = [
-      cocotb-bus
-      pytestCheckHook
-      swig
-      iverilog
-      ghdl-bin
-    ];
-
-    pythonImportsCheck = [ "cocotb" ];
-
-    meta = {
-      changelog = "https://github.com/cocotb/cocotb/releases/tag/v${version}";
-      description = "Coroutine based cosimulation library for writing VHDL and Verilog testbenches in Python";
-      mainProgram = "cocotb-config";
-      homepage = "https://github.com/cocotb/cocotb";
-      license = lib.licenses.bsd3;
-      platforms = lib.platforms.linux ++ lib.platforms.darwin;
-    };
+  # pypi source doesn't include tests
+  src = fetchFromGitHub {
+    owner = "cocotb";
+    repo = "cocotb";
+    tag = "v${version}";
+    inherit sha256;
   };
-in
-self
+
+  buildInputs = [
+    setuptools
+    zlib
+  ];
+  propagatedBuildInputs = [ find-libpython ];
+
+  postPatch = ''
+    patchShebangs bin/*.py
+  '';
+
+  nativeCheckInputs = [
+    gnumake
+    cocotb-bus
+    pytestCheckHook
+    swig
+    iverilog
+    pexpect
+  ]
+  ++ lib.optionals (lib.meta.availableOn stdenv.hostPlatform ghdl-bin) [ ghdl-bin ];
+
+  pythonImportsCheck = [ "cocotb" ];
+
+  disabledTests = [
+    "test_ipython_support_interactive"
+  ]
+  ++ lib.optionals (!lib.meta.availableOn stdenv.hostPlatform ghdl-bin) [ "vhdl" ];
+
+  meta = {
+    changelog = "https://github.com/cocotb/cocotb/releases/tag/v${version}";
+    description = "Coroutine based cosimulation library for writing VHDL and Verilog testbenches in Python";
+    mainProgram = "cocotb-config";
+    homepage = "https://github.com/cocotb/cocotb";
+    license = lib.licenses.bsd3;
+    platforms = lib.platforms.linux ++ lib.platforms.darwin;
+  };
+}

@@ -27,19 +27,19 @@ def run(purpose, *args):
             return None
         print(f"Unexpected error: failed to {purpose}:", file=sys.stderr)
         print(stderr, file=sys.stderr)
-        exit(-1)
+        sys.exit(-1)
     return process.stdout
 
 
-system = tuple()
+system_args = ()
 if len(sys.argv) > 1:
-    system = ("--system", sys.argv[1])
+    system_args = ("--system", sys.argv[1])
 
 flake_meta = json.load(
-    run("get flake metadata", "nix", "flake", "show", *system, "--json")
+    run("get flake metadata", "nix", "flake", "show", *system_args, "--json")
 )
-packages = flake_meta["packages"]
-for platform, packages in packages.items():
+all_packages = flake_meta["packages"]
+for platform, packages in all_packages.items():
     for package, package_info in packages.items():
         if len(package_info) == 0:
             continue
@@ -57,7 +57,7 @@ for platform, packages in packages.items():
                 f"'nix derivation show' unexpectedly returned {len(keys)} paths, expected exactly 1: {tgt}, {keys}",
                 file=sys.stderr,
             )
-            exit(-1)
+            sys.exit(-1)
         output_list = drv[keys[0]]["outputs"]
         for output in output_list:
             print(f"{tgt}.{output}")

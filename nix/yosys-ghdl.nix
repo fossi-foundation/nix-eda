@@ -46,6 +46,10 @@ yosys.stdenv.mkDerivation {
     inherit sha256;
   };
 
+  patches = [
+    ./patches/yosys-ghdl/ys_0p70_compat.patch
+  ];
+
   buildInputs = [
     yosys
     python3

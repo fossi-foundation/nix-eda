@@ -57,6 +57,7 @@ nix-eda updates:
 
 | nix-eda version | NixOS version | Comments |
 | - | - | - |
+| 8 | 26.11 | drop support for macOS on x86_64 |
 | 7 | 26.05 | fetchGitHubSnapshot now returns a tarball |
 | 6 | 25.11 | |
 | 5 | 25.05 | |

@@ -5,9 +5,10 @@
   fetchFromGitHub,
   rustPlatform,
   cmake,
-  version ? "0.1.8",
+  version ? "0.1.11",
   rev ? null,
-  sha256 ? "sha256-DG6QOB5MFRr+Rsr5wcrsQkSHYD9iubuA2LPcCGuAKpY=",
+  sha256 ? "sha256-/oUzHXRQmxO8oonBqWNJOOWDckFEjoFqhHY/VNqb6U4=",
+  cargoHash ? "sha256-svdhsuCmlsuiVyXfgveoRyBoCgoGZfkxrrK9D7dl8yM=",
 }:
 rustPlatform.buildRustPackage {
   pname = "gdsfill";
@@ -20,7 +21,7 @@ rustPlatform.buildRustPackage {
     hash = sha256;
   };
 
-  cargoHash = "sha256-n4WJbeoH+M85Mv3sBeEpKdk+xv3fbL54PT0xlEV/voI=";
+  inherit cargoHash;
 
   nativeBuildInputs = [ cmake ];
 

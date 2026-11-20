@@ -24,11 +24,11 @@
   lib,
   yosys,
   fetchFromGitHub,
-  boolector,
+  bitwuzla,
   z3,
   yices,
-  version ? "0.70",
-  sha256 ? "sha256-vZpp2uWferqWu8IRA8QnHCQXhB4ciNaEm9S29LJDLFg=",
+  version ? "0.71",
+  sha256 ? "sha256-cWkqWYZfW+TEv796GsJvQ3P/TGswltFFEmHpA0IIcjE=",
 }:
 yosys.stdenv.mkDerivation (finalAttrs: {
   pname = "yosys-sby";
@@ -54,7 +54,7 @@ yosys.stdenv.mkDerivation (finalAttrs: {
 
     yosys.python3-env
     # solvers
-    boolector
+    bitwuzla
     z3
     yices
   ];
