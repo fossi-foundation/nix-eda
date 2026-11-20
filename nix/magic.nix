@@ -35,9 +35,9 @@
   darwin,
   autoconf269,
   automake,
-  version ? "8.3.693",
+  version ? "8.3.706",
   rev ? null,
-  sha256 ? "sha256-4dG1Wnle9DCgoGFKMBrc5xZWEy6VYbogZaK06ar2wJI=",
+  sha256 ? "sha256-fk5W3j8FJccq/eZUz/bC/knEOYRwORS8Z7WuxkPGGwE=",
 }:
 clangStdenv.mkDerivation {
   pname = "magic-vlsi";
